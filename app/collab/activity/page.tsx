@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Timeline,
+  List,
   Search,
   Filter,
   RefreshCcw,
@@ -195,7 +195,7 @@ export default function ActivityTimelinePage() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: 'Total Events', value: stats.total, icon: Timeline, color: 'text-blue-600' },
+          { label: 'Total Events', value: stats.total, icon: List, color: 'text-blue-600' },
           { label: 'Today', value: stats.today, icon: Clock, color: 'text-green-600' },
           { label: 'Tasks', value: stats.tasks, icon: CheckSquare, color: 'text-purple-600' },
           { label: 'Messages', value: stats.messages, icon: MessageSquare, color: 'text-orange-600' },

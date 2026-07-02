@@ -62,7 +62,6 @@ import {
   Video,
   Megaphone,
   Contact,
-  Timeline,
   PenTool,
   Search,
   PiggyBank,
@@ -71,6 +70,7 @@ import {
   Warehouse,
   Monitor,
   Calculator,
+  List,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -242,7 +242,7 @@ export const navSections: NavSection[] = [
       { label: 'Knowledge Base', href: '/collab/knowledge', icon: BookOpen },
       { label: 'Announcements', href: '/collab/announcements', icon: Megaphone },
       { label: 'Directory', href: '/collab/directory', icon: Contact },
-      { label: 'Activity', href: '/collab/activity', icon: Timeline },
+      { label: 'Activity', href: '/collab/activity', icon: Activity },
       { label: 'Whiteboard', href: '/collab/whiteboard', icon: PenTool },
     ],
   },
