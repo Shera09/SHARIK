@@ -65,6 +65,12 @@ import {
   Timeline,
   PenTool,
   Search,
+  PiggyBank,
+  ShoppingCart,
+  Truck,
+  Warehouse,
+  Monitor,
+  Calculator,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -118,14 +124,18 @@ export const navSections: NavSection[] = [
     ],
   },
   {
-    title: 'Finance',
+    title: 'Finance & Operations',
     items: [
-      { label: 'Chart of Accounts', href: '/accounting', icon: FileSpreadsheet },
-      { label: 'Transactions', href: '/accounting/transactions', icon: Receipt },
-      { label: 'Journal', href: '/accounting/journal', icon: BookOpen },
-      { label: 'Expenses', href: '/expenses', icon: FileBarChart },
-      { label: 'Credit Notes', href: '/credit-notes', icon: StickyNote },
-      { label: 'Bank Accounts', href: '/bank-accounts', icon: Building2 },
+      { label: 'Finance Dashboard', href: '/finance', icon: LayoutDashboard },
+      { label: 'Chart of Accounts', href: '/finance/chart-of-accounts', icon: FileSpreadsheet },
+      { label: 'Journal Entries', href: '/finance/journal', icon: BookOpen },
+      { label: 'Budgets', href: '/finance/budgets', icon: PiggyBank },
+      { label: 'Vendors', href: '/finance/vendors', icon: Users },
+      { label: 'Purchase Orders', href: '/finance/purchase-orders', icon: ShoppingCart },
+      { label: 'Inventory', href: '/finance/inventory', icon: Package },
+      { label: 'Warehouses', href: '/finance/warehouses', icon: Warehouse },
+      { label: 'Assets', href: '/finance/assets', icon: Monitor },
+      { label: 'GST & Tax', href: '/finance/tax', icon: Calculator },
     ],
   },
   {
