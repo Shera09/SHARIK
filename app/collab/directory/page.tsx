@@ -112,13 +112,13 @@ export default function EmployeeDirectoryPage() {
     { profile_id: '8', user_id: 'u8', display_name: 'James Wilson', title: 'Finance Controller', department: 'Finance', branch_id: 'hq', manager_id: 'u1', email: 'james@company.com', phone: '+1-555-0107', location: 'New York, NY', avatar_url: '', bio: 'Financial strategist ensuring fiscal health', skills: ['Financial Planning', 'Budgeting', 'Compliance'], status: 'active', status_message: '', is_online: true, last_seen_at: new Date().toISOString() },
   ];
 
-  const departments = [...new Set(mockEmployees.map(e => e.department))];
+  const departments = Array.from(new Set(mockEmployees.map(e => e.department)));
 
   const stats = {
     total: mockEmployees.length,
     online: mockEmployees.filter(e => e.is_online).length,
     departments: departments.length,
-    locations: [...new Set(mockEmployees.map(e => e.location))].length,
+    locations: Array.from(new Set(mockEmployees.map(e => e.location))).length,
   };
 
   const viewEmployee = (employee: Employee) => {

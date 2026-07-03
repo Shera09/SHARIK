@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   Database,
   Table,
-  Column,
+  Columns,
   Search,
   Filter,
   Download,

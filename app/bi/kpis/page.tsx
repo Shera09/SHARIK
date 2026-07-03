@@ -111,7 +111,7 @@ export default function KPILibraryPage() {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = [...new Set(kpis.map(k => k.category))];
+  const categories = Array.from(new Set(kpis.map(k => k.category)));
 
   // Mock current values for demo
   const getCurrentValue = (kpi: KPI) => {

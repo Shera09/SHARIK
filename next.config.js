@@ -7,6 +7,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: { unoptimized: true },
+  // Disable static optimization to reduce memory
+  generateBuildId: async () => 'build',
 };
 
 module.exports = nextConfig;

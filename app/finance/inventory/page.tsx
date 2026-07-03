@@ -119,7 +119,7 @@ export default function InventoryPage() {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = [...new Set(mockProducts.map(p => p.category_name))];
+  const categories = Array.from(new Set(mockProducts.map(p => p.category_name)));
 
   const stats = {
     total: mockProducts.length,
