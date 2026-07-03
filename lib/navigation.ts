@@ -85,6 +85,10 @@ import {
   ArrowRightLeft,
   Plug,
   Lock,
+  Tablet,
+  Fingerprint,
+  RefreshCw,
+  Scan,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -269,6 +273,38 @@ export const navSections: NavSection[] = [
       { label: 'Developer', href: '/integration/developer', icon: Code },
       { label: 'Monitoring', href: '/integration/monitoring', icon: Activity },
       { label: 'Secrets', href: '/integration/secrets', icon: Lock },
+    ],
+  },
+  {
+    title: 'Mobile Ecosystem',
+    items: [
+      { label: 'Command Center', href: '/mobile', icon: LayoutDashboard },
+      { label: 'Devices', href: '/mobile/devices', icon: Smartphone },
+      { label: 'Sync Engine', href: '/mobile/sync', icon: RefreshCw },
+      { label: 'Push Notifications', href: '/mobile/notifications', icon: Bell },
+      { label: 'Mobile CRM', href: '/mobile/crm', icon: Users },
+      { label: 'Mobile Finance', href: '/mobile/finance', icon: DollarSign },
+      { label: 'Mobile HRMS', href: '/mobile/hrms', icon: Briefcase },
+      { label: 'Customer Portal', href: '/mobile/portal', icon: Globe },
+      { label: 'AI Assistant', href: '/mobile/ai-assistant', icon: Sparkles, badge: 'AI' },
+      { label: 'Biometrics', href: '/mobile/biometrics', icon: Fingerprint },
+      { label: 'Analytics', href: '/mobile/analytics', icon: BarChart3 },
+    ],
+  },
+  {
+    title: 'DevOps Platform',
+    items: [
+      { label: 'Command Center', href: '/devops', icon: LayoutDashboard },
+      { label: 'Infrastructure', href: '/devops/infrastructure', icon: Server },
+      { label: 'CI/CD Pipeline', href: '/devops/pipelines', icon: GitBranch },
+      { label: 'Monitoring', href: '/devops/monitoring', icon: Activity },
+      { label: 'Observability', href: '/devops/observability', icon: Eye },
+      { label: 'Alerts', href: '/devops/alerts', icon: AlertTriangle },
+      { label: 'Performance', href: '/devops/performance', icon: Gauge },
+      { label: 'Backups & DR', href: '/devops/backup', icon: Database },
+      { label: 'Security Ops', href: '/devops/security', icon: Shield },
+      { label: 'Costs', href: '/devops/costs', icon: DollarSign },
+      { label: 'Environments', href: '/devops/environments', icon: Layers },
     ],
   },
   {
