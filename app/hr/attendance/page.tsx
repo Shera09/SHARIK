@@ -137,7 +137,7 @@ export default function AttendancePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Today's Summary</CardTitle>
+            <CardTitle>Today&apos;s Summary</CardTitle>
             <CardDescription>Attendance breakdown for today</CardDescription>
           </CardHeader>
           <CardContent>
@@ -168,7 +168,7 @@ export default function AttendancePage() {
       {/* Tabs */}
       <Tabs className="mt-6" defaultValue="today">
         <TabsList>
-          <TabsTrigger value="today">Today's Records</TabsTrigger>
+          <TabsTrigger value="today">Today&apos;s Records</TabsTrigger>
           <TabsTrigger value="corrections">Correction Requests</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>

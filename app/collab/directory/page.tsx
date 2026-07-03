@@ -233,7 +233,7 @@ export default function EmployeeDirectoryPage() {
                     {employee.location}
                   </div>
                   {employee.status_message && (
-                    <p className="mt-2 text-xs text-muted-foreground italic">"{employee.status_message}"</p>
+                    <p className="mt-2 text-xs text-muted-foreground italic">&quot;{employee.status_message}&quot;</p>
                   )}
                 </CardContent>
               </Card>

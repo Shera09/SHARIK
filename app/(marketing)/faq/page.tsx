@@ -277,7 +277,7 @@ export default function FAQPage() {
           {filteredFaqs ? (
             <div>
               <p className="text-sm text-muted-foreground mb-6">
-                Found {filteredFaqs.length} result{filteredFaqs.length !== 1 ? 's' : ''} for "{search}"
+                Found {filteredFaqs.length} result{filteredFaqs.length !== 1 ? 's' : ''} for &quot;{search}&quot;
               </p>
               {filteredFaqs.length === 0 ? (
                 <div className="text-center py-12">

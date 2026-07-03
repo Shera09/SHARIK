@@ -217,7 +217,7 @@ export default function MeetingsPage() {
 
       {/* Today's Meetings */}
       <div className="mt-6">
-        <h2 className="text-xl font-semibold mb-4">Today's Meetings</h2>
+        <h2 className="text-xl font-semibold mb-4">Today&apos;s Meetings</h2>
         {todayMeetings.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-8 text-center">

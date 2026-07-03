@@ -554,7 +554,7 @@ export default function BusinessSimulatorPage() {
                 </div>
                 <h3 className="font-display text-xl font-bold mb-2">Scenario Simulator</h3>
                 <p className="text-sm text-muted-foreground max-w-md">
-                  Adjust parameters on the left and click "Run Simulation" to see projected business outcomes.
+                  Adjust parameters on the left and click &quot;Run Simulation&quot; to see projected business outcomes.
                 </p>
               </div>
             ) : (

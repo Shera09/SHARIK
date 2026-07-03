@@ -266,7 +266,7 @@ export default function VoiceAIPage() {
                           {cmd.resolved ? <CheckCircle className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
                         </div>
                         <div>
-                          <p className="text-sm font-medium">"{cmd.command}"</p>
+                          <p className="text-sm font-medium">&quot;{cmd.command}&quot;</p>
                           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                             <Badge variant="outline" className="text-[10px]">{cmd.intent.replace('_', ' ')}</Badge>
                             <span>{cmd.time}</span>

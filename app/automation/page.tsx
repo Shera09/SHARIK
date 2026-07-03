@@ -899,7 +899,7 @@ export default function AutomationPage() {
                   placeholder="0 9 * * *"
                 />
                 <p className="text-xs text-muted-foreground">
-                  e.g., "0 9 * * *" runs daily at 9 AM
+                  e.g., &quot;0 9 * * *&quot; runs daily at 9 AM
                 </p>
               </div>
             )}

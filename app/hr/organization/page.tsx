@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Building2,
@@ -76,6 +76,23 @@ interface Designation {
   is_active: boolean;
 }
 
+function buildDeptTree(depts: Department[]): Department[] {
+  const map = new Map<string, Department>();
+  const roots: Department[] = [];
+
+  depts.forEach(d => map.set(d.id, { ...d, children: [] }));
+  depts.forEach(d => {
+    const node = map.get(d.id)!;
+    if (d.parent_dept_id && map.has(d.parent_dept_id)) {
+      map.get(d.parent_dept_id)!.children!.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+
+  return roots;
+}
+
 export default function OrganizationPage() {
   const [loading, setLoading] = useState(true);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -85,11 +102,7 @@ export default function OrganizationPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createType, setCreateType] = useState<'branch' | 'department' | 'designation'>('branch');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       const [branchRes, deptRes, desRes] = await Promise.all([
         supabase.from('branches').select('*').order('branch_name'),
@@ -105,24 +118,11 @@ export default function OrganizationPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  function buildDeptTree(depts: Department[]): Department[] {
-    const map = new Map<string, Department>();
-    const roots: Department[] = [];
-
-    depts.forEach(d => map.set(d.id, { ...d, children: [] }));
-    depts.forEach(d => {
-      const node = map.get(d.id)!;
-      if (d.parent_dept_id && map.has(d.parent_dept_id)) {
-        map.get(d.parent_dept_id)!.children!.push(node);
-      } else {
-        roots.push(node);
-      }
-    });
-
-    return roots;
-  }
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const mockBranches: Branch[] = branches.length > 0 ? branches : [
     { id: '1', branch_code: 'HO', branch_name: 'Head Office - Mumbai', branch_type: 'corporate', city: 'Mumbai', state: 'Maharashtra', is_head_office: true, is_active: true },

@@ -213,7 +213,7 @@ export default function DeveloperPage() {
                 <div className="py-4">
                   <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 mb-4">
                     <p className="text-sm font-medium text-green-600 mb-2">App Created Successfully</p>
-                    <p className="text-xs text-muted-foreground mb-3">Save this client secret. It won't be shown again.</p>
+                    <p className="text-xs text-muted-foreground mb-3">Save this client secret. It won&apos;t be shown again.</p>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 p-2 bg-muted rounded text-xs font-mono break-all">{createdSecret}</code>
                       <Button size="icon" variant="outline" onClick={() => copyToClipboard(createdSecret)}>
