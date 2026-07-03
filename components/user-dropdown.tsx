@@ -78,7 +78,7 @@ export function UserDropdown() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
       >
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white text-sm font-medium">
           {initials}
         </div>
         <div className="hidden md:block text-left">
@@ -113,7 +113,7 @@ export function UserDropdown() {
               {/* User info header */}
               <div className="p-4 border-b border-border bg-muted/30">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-medium">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white text-lg font-medium">
                     {initials}
                   </div>
                   <div className="flex-1 min-w-0">

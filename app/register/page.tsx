@@ -248,7 +248,7 @@ export default function RegisterPage() {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-center gap-3 mb-8"
         >
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center shadow-lg shadow-teal-500/25">
             <Building2 className="w-7 h-7 text-white" />
           </div>
           <div>
@@ -380,7 +380,7 @@ export default function RegisterPage() {
                     type="button"
                     onClick={() => setStep(2)}
                     disabled={!canProceedStep1}
-                    className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full py-3 px-4 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-medium rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     Continue
                     <ArrowRight className="w-5 h-5" />
@@ -479,7 +479,7 @@ export default function RegisterPage() {
                       type="button"
                       onClick={() => setStep(3)}
                       disabled={!canProceedStep2}
-                      className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="flex-1 py-3 px-4 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-medium rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       Continue
                       <ArrowRight className="w-5 h-5" />
@@ -644,7 +644,7 @@ export default function RegisterPage() {
                       disabled={isLoading || !canProceedStep3}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
-                      className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="flex-1 py-3 px-4 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-medium rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {isLoading ? (
                         <>

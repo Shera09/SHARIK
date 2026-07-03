@@ -3,81 +3,82 @@
 @tailwind utilities;
 
 @layer base {
+  /* Vichy Theme — #05AD98 teal, #878787 mid-gray, #BBBFBF light-gray, #FFFFFF white */
   :root {
-    --background: 210 40% 98%;
-    --background-2: 214 42% 95%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 100%;
+    --background-2: 174 20% 97%;
+    --foreground: 180 8% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 180 8% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 199 89% 48%;
-    --accent-foreground: 210 40% 98%;
-    --success: 142 71% 45%;
-    --success-foreground: 210 40% 98%;
+    --popover-foreground: 180 8% 15%;
+    --primary: 174 95% 35%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 174 10% 93%;
+    --secondary-foreground: 180 8% 20%;
+    --muted: 174 8% 94%;
+    --muted-foreground: 0 0% 53%;
+    --accent: 174 85% 40%;
+    --accent-foreground: 0 0% 100%;
+    --success: 142 71% 42%;
+    --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 11%;
+    --warning-foreground: 180 8% 15%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
-    --chart-1: 221 83% 53%;
-    --chart-2: 199 89% 48%;
-    --chart-3: 142 71% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 180 3% 82%;
+    --input: 180 3% 88%;
+    --ring: 174 95% 35%;
+    --chart-1: 174 95% 35%;
+    --chart-2: 0 0% 53%;
+    --chart-3: 142 71% 42%;
     --chart-4: 38 92% 50%;
-    --chart-5: 280 65% 60%;
+    --chart-5: 174 60% 58%;
     --radius: 0.75rem;
-    --glass-bg: 255 255 255 / 0.7;
-    --glass-border: 255 255 255 / 0.5;
-    --glass-shadow: 0 8px 32px 0 rgb(31 38 135 / 0.07);
+    --glass-bg: 255 255 255 / 0.75;
+    --glass-border: 5 173 152 / 0.15;
+    --glass-shadow: 0 8px 32px 0 rgb(5 173 152 / 0.08);
     --sidebar: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-accent: 210 40% 96%;
+    --sidebar-foreground: 180 8% 15%;
+    --sidebar-accent: 174 10% 95%;
   }
 
   .dark {
-    --background: 222 47% 7%;
-    --background-2: 222 45% 10%;
-    --foreground: 210 40% 98%;
-    --card: 222 44% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 44% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 199 89% 48%;
-    --accent-foreground: 210 40% 98%;
-    --success: 142 71% 45%;
-    --success-foreground: 210 40% 98%;
+    --background: 180 18% 7%;
+    --background-2: 180 15% 10%;
+    --foreground: 0 0% 95%;
+    --card: 180 14% 11%;
+    --card-foreground: 0 0% 95%;
+    --popover: 180 14% 11%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 174 80% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 180 12% 17%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 180 12% 17%;
+    --muted-foreground: 180 4% 62%;
+    --accent: 174 75% 45%;
+    --accent-foreground: 0 0% 100%;
+    --success: 142 71% 42%;
+    --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 11%;
+    --warning-foreground: 180 8% 15%;
     --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 217 91% 60%;
-    --chart-1: 217 91% 60%;
-    --chart-2: 199 89% 48%;
-    --chart-3: 142 71% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 180 10% 20%;
+    --input: 180 10% 20%;
+    --ring: 174 80% 42%;
+    --chart-1: 174 80% 42%;
+    --chart-2: 180 4% 62%;
+    --chart-3: 142 71% 42%;
     --chart-4: 38 92% 50%;
-    --chart-5: 280 65% 60%;
-    --glass-bg: 255 255 255 / 0.05;
-    --glass-border: 255 255 255 / 0.08;
-    --glass-shadow: 0 8px 32px 0 rgb(0 0 0 / 0.3);
-    --sidebar: 222 47% 9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-accent: 217 33% 17%;
+    --chart-5: 174 60% 62%;
+    --glass-bg: 5 173 152 / 0.05;
+    --glass-border: 5 173 152 / 0.12;
+    --glass-shadow: 0 8px 32px 0 rgb(0 0 0 / 0.35);
+    --sidebar: 180 18% 6%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-accent: 180 12% 14%;
   }
 
   /* Premium Theme: Royal Black + Gold */
@@ -177,9 +178,9 @@
     background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
   }
 
-  .gradient-text-gold {
+  .gradient-text-teal {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #ffd700 0%, #b8860b 50%, #ffd700 100%);
+    background-image: linear-gradient(135deg, #05AD98 0%, #038a78 50%, #05AD98 100%);
   }
 
   .gradient-border {

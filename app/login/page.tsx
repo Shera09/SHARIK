@@ -171,7 +171,7 @@ export default function LoginPage() {
             key={i}
             delay={i * 0.3}
             duration={3 + Math.random() * 2}
-            className="bg-blue-500/30"
+            className="bg-teal-500/30"
             style={{
               left: `${Math.random() * 100}%`,
               bottom: '-10px',
@@ -194,11 +194,11 @@ export default function LoginPage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-3 mb-8"
           >
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center shadow-lg shadow-teal-500/25">
               <Building2 className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-400 to-teal-600 bg-clip-text text-transparent">
                 WebHoster AI
               </h1>
               <p className="text-xs text-slate-400">Business OS</p>
@@ -249,7 +249,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                   placeholder="you@company.com"
                   required
                 />
@@ -265,7 +265,7 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-12 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full pl-11 pr-12 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                   placeholder="Enter your password"
                   required
                 />
@@ -286,13 +286,13 @@ export default function LoginPage() {
                   type="checkbox"
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+                  className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-teal-500 focus:ring-offset-0"
                 />
                 <span className="text-sm text-slate-400">Remember me</span>
               </label>
               <Link
                 href="/forgot-password"
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                className="text-sm text-teal-400 hover:text-teal-300 transition-colors"
               >
                 Forgot password?
               </Link>
@@ -304,7 +304,7 @@ export default function LoginPage() {
               disabled={isLoading}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-medium rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
@@ -364,7 +364,7 @@ export default function LoginPage() {
           {/* Sign up link */}
           <p className="mt-8 text-center text-sm text-slate-400">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+            <Link href="/register" className="text-teal-400 hover:text-teal-300 font-medium transition-colors">
               Create workspace
             </Link>
           </p>
@@ -422,7 +422,7 @@ export default function LoginPage() {
                       className="bg-slate-700/30 rounded-xl p-3"
                     >
                       <div className="flex items-center gap-2 mb-1">
-                        <metric.icon className="w-4 h-4 text-blue-400" />
+                        <metric.icon className="w-4 h-4 text-teal-400" />
                         <span className="text-xs text-slate-400">{metric.label}</span>
                       </div>
                       <div className="flex items-baseline justify-between">
@@ -489,11 +489,11 @@ export default function LoginPage() {
               <span className="text-sm">Enterprise Security</span>
             </div>
             <div className="flex items-center gap-2 text-slate-400">
-              <Sparkles className="w-5 h-5 text-blue-400" />
+              <Sparkles className="w-5 h-5 text-teal-400" />
               <span className="text-sm">AI-Powered</span>
             </div>
             <div className="flex items-center gap-2 text-slate-400">
-              <BarChart3 className="w-5 h-5 text-purple-400" />
+              <BarChart3 className="w-5 h-5 text-teal-400" />
               <span className="text-sm">Real-time Analytics</span>
             </div>
           </motion.div>

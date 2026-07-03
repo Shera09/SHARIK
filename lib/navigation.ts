@@ -89,6 +89,7 @@ import {
   Fingerprint,
   RefreshCw,
   Scan,
+  Star,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -187,6 +188,7 @@ export const navSections: NavSection[] = [
       { label: 'WhatsApp Marketing', href: '/marketing/whatsapp', icon: MessageSquare },
       { label: 'SMS Marketing', href: '/marketing/sms', icon: Smartphone },
       { label: 'Social Media', href: '/marketing/social', icon: Share2 },
+      { label: 'Google Reviews', href: '/google-reviews', icon: Star, badge: 'New' },
       { label: 'Automation', href: '/marketing/automation', icon: Zap },
       { label: 'Lead Scoring', href: '/marketing/lead-scoring', icon: Target },
       { label: 'Segments', href: '/marketing/segments', icon: Users },
