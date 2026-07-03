@@ -104,6 +104,15 @@ export default function AIPlatformPage() {
 
   const platformModules = [
     {
+      title: 'Multi-Agent System',
+      description: '27 specialized AI agents for all business functions',
+      icon: Brain,
+      href: '/ai-platform/agents',
+      color: 'from-purple-500/20 to-pink-500/20',
+      stats: '27 agents',
+      badge: 'NEW',
+    },
+    {
       title: 'Model Router',
       description: 'Intelligent model selection based on task, cost, and performance',
       icon: Cpu,
@@ -116,15 +125,24 @@ export default function AIPlatformPage() {
       description: 'Centralized prompt management with versioning and approval',
       icon: BookOpen,
       href: '/ai-platform/prompts',
-      color: 'from-purple-500/20 to-pink-500/20',
+      color: 'from-violet-500/20 to-purple-500/20',
       stats: `${stats.totalPrompts} prompts`,
     },
     {
-      title: 'RAG Knowledge',
+      title: 'RAG 2.0 Engine',
+      description: 'Hybrid search, citations, and permission-aware retrieval',
+      icon: FileSearch,
+      href: '/ai-platform/rag',
+      color: 'from-emerald-500/20 to-teal-500/20',
+      stats: 'Hybrid search',
+      badge: '2.0',
+    },
+    {
+      title: 'Knowledge Base',
       description: 'Document upload, chunking, embeddings, and semantic retrieval',
       icon: Database,
       href: '/ai-platform/knowledge',
-      color: 'from-emerald-500/20 to-teal-500/20',
+      color: 'from-green-500/20 to-lime-500/20',
       stats: `${stats.knowledgeSources} sources`,
     },
     {
@@ -136,20 +154,12 @@ export default function AIPlatformPage() {
       stats: '7 layers',
     },
     {
-      title: 'Vector Search',
-      description: 'Semantic search across all business entities',
-      icon: FileSearch,
-      href: '/ai-platform/vector-search',
-      color: 'from-rose-500/20 to-red-500/20',
-      stats: 'Hybrid search',
-    },
-    {
-      title: 'AI Guardrails',
-      description: 'Security filters, prompt injection detection, PII protection',
-      icon: Shield,
-      href: '/ai-platform/guardrails',
-      color: 'from-yellow-500/20 to-orange-500/20',
-      stats: '5 active',
+      title: 'Conversations',
+      description: 'Session management and conversation history',
+      icon: MessageSquare,
+      href: '/ai-platform/conversations',
+      color: 'from-cyan-500/20 to-sky-500/20',
+      stats: 'History view',
     },
     {
       title: 'Document Intelligence',
@@ -158,6 +168,59 @@ export default function AIPlatformPage() {
       href: '/ai-platform/document-intelligence',
       color: 'from-indigo-500/20 to-violet-500/20',
       stats: 'Smart extraction',
+    },
+    {
+      title: 'Voice AI',
+      description: 'Speech-to-text, voice commands, and meeting transcription',
+      icon: Zap,
+      href: '/ai-platform/voice',
+      color: 'from-rose-500/20 to-red-500/20',
+      stats: '12 languages',
+      badge: 'NEW',
+    },
+    {
+      title: 'Vision AI',
+      description: 'Image processing, OCR, business cards, QR/barcode scanning',
+      icon: FileSearch,
+      href: '/ai-platform/vision',
+      color: 'from-fuchsia-500/20 to-pink-500/20',
+      stats: '6 types',
+      badge: 'NEW',
+    },
+    {
+      title: 'AI Automation',
+      description: 'Automated actions with human approval workflow',
+      icon: Zap,
+      href: '/ai-platform/automation',
+      color: 'from-amber-500/20 to-orange-500/20',
+      stats: '10 actions',
+      badge: 'NEW',
+    },
+    {
+      title: 'AI Search',
+      description: 'Natural language search across all business data',
+      icon: FileSearch,
+      href: '/ai-platform/search',
+      color: 'from-blue-500/20 to-indigo-500/20',
+      stats: 'Unified',
+      badge: 'NEW',
+    },
+    {
+      title: 'AI Governance',
+      description: 'Safety rules, content filters, and audit logging',
+      icon: Shield,
+      href: '/ai-platform/governance',
+      color: 'from-yellow-500/20 to-orange-500/20',
+      stats: '6 guards',
+      badge: 'NEW',
+    },
+    {
+      title: 'Vector Search',
+      description: 'Semantic search across all business entities',
+      icon: FileSearch,
+      href: '/ai-platform/vector-search',
+      color: 'from-slate-500/20 to-gray-500/20',
+      stats: 'Embeddings',
     },
     {
       title: 'Evaluation',
@@ -182,14 +245,6 @@ export default function AIPlatformPage() {
       href: '/ai-platform/observability',
       color: 'from-pink-500/20 to-rose-500/20',
       stats: 'Live metrics',
-    },
-    {
-      title: 'Approvals',
-      description: 'Human-in-the-loop for high-impact AI actions',
-      icon: CheckCircle,
-      href: '/ai-platform/approvals',
-      color: 'from-sky-500/20 to-blue-500/20',
-      stats: '4 workflows',
     },
   ];
 
@@ -335,7 +390,12 @@ export default function AIPlatformPage() {
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-3`}>
                   <module.icon className="h-6 w-6 text-foreground/70" />
                 </div>
-                <h3 className="font-semibold mb-1 group-hover:text-primary transition-colors">{module.title}</h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold group-hover:text-primary transition-colors">{module.title}</h3>
+                  {module.badge && (
+                    <Badge className="text-[9px] bg-primary/20 text-primary">{module.badge}</Badge>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{module.description}</p>
                 <div className="flex items-center justify-between">
                   <Badge variant="outline" className="text-[10px]">{module.stats}</Badge>

@@ -15,6 +15,15 @@ import {
   MessageSquare,
   StickyNote,
   ArrowRight,
+  Brain,
+  Bot,
+  Server,
+  Shield,
+  Globe,
+  Smartphone,
+  Activity,
+  Layers,
+  Zap,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -34,8 +43,10 @@ import { KpiCard } from '@/components/kpi-card';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 const revenueData = [
   { month: 'Jan', revenue: 145000, expenses: 82000 },
@@ -157,6 +168,37 @@ export default function DashboardPage() {
           gradient="bg-gradient-to-br from-warning to-destructive"
           delay={0.15}
         />
+      </div>
+
+      {/* Platform Quick Access */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mt-6">
+        {[
+          { label: 'AI Platform', icon: Brain, href: '/ai-platform', color: 'from-purple-500 to-pink-500', badge: '27 Agents' },
+          { label: 'Finance', icon: Wallet, href: '/finance', color: 'from-green-500 to-emerald-500' },
+          { label: 'HRMS', icon: Users, href: '/hr', color: 'from-cyan-500 to-blue-500' },
+          { label: 'Marketing', icon: Zap, href: '/marketing', color: 'from-orange-500 to-amber-500' },
+          { label: 'DevOps', icon: Server, href: '/devops', color: 'from-slate-500 to-gray-500' },
+          { label: 'Security', icon: Shield, href: '/security', color: 'from-red-500 to-orange-500' },
+          { label: 'Mobile', icon: Smartphone, href: '/mobile', color: 'from-rose-500 to-pink-500' },
+          { label: 'Integrations', icon: Layers, href: '/integration', color: 'from-yellow-500 to-orange-500' },
+        ].map((item, i) => (
+          <Link key={item.href} href={item.href}>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.03 }}
+              className="glass-card p-3 hover:shadow-lg transition-all cursor-pointer group"
+            >
+              <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br mb-2', item.color)}>
+                <item.icon className="h-5 w-5 text-white" />
+              </div>
+              <p className="text-sm font-medium group-hover:text-primary transition-colors">{item.label}</p>
+              {item.badge && (
+                <Badge variant="outline" className="text-[9px] mt-1">{item.badge}</Badge>
+              )}
+            </motion.div>
+          </Link>
+        ))}
       </div>
 
       {/* Charts */}
@@ -281,6 +323,43 @@ export default function DashboardPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* AI Intelligence Status */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.35 }}
+        className="glass-card mt-6 p-5 premium-shadow"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-purple-500" />
+            <h3 className="font-display text-base font-semibold">AI Intelligence Status</h3>
+          </div>
+          <Link href="/ai-platform">
+            <Button variant="ghost" size="sm" className="gap-1 text-xs">
+              AI Platform
+              <ArrowRight className="h-3 w-3" />
+            </Button>
+          </Link>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: 'Active Agents', value: '23/27', icon: Bot, color: 'text-purple-500' },
+            { label: 'Today Conversations', value: '15,678', icon: MessageSquare, color: 'text-blue-500' },
+            { label: 'Avg Response', value: '1.24s', icon: Activity, color: 'text-green-500' },
+            { label: 'Success Rate', value: '99.2%', icon: CheckSquare, color: 'text-emerald-500' },
+          ].map((stat, i) => (
+            <div key={stat.label} className="flex items-center gap-3 p-3 rounded-lg bg-muted/20">
+              <stat.icon className={cn('h-5 w-5', stat.color)} />
+              <div>
+                <p className="text-lg font-bold">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
 
       {/* Recent Activity */}
       <motion.div

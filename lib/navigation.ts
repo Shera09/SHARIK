@@ -105,9 +105,11 @@ export type NavSection = {
 
 export const navSections: NavSection[] = [
   {
-    title: 'Overview',
+    title: 'Command Center',
     items: [
+      { label: 'Unified Command', href: '/command-center', icon: LayoutDashboard, badge: 'Master' },
       { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { label: 'Platform Health', href: '/platform-health', icon: Activity },
       { label: 'Analytics', href: '/analytics', icon: BarChart3 },
       { label: 'Reports', href: '/reports', icon: FileSpreadsheet },
     ],
@@ -237,18 +239,22 @@ export const navSections: NavSection[] = [
   {
     title: 'AI Platform',
     items: [
-      { label: 'Overview', href: '/ai-platform', icon: Brain },
+      { label: 'Brain Center', href: '/ai-platform', icon: Brain },
+      { label: 'Multi-Agent', href: '/ai-platform/agents', icon: Bot, badge: '27' },
       { label: 'Model Router', href: '/ai-platform/model-router', icon: Cpu },
       { label: 'Prompts', href: '/ai-platform/prompts', icon: BookOpen },
       { label: 'Knowledge', href: '/ai-platform/knowledge', icon: Database },
+      { label: 'RAG Engine', href: '/ai-platform/rag', icon: FileSearch, badge: '2.0' },
       { label: 'Memory', href: '/ai-platform/memory', icon: Layers },
-      { label: 'Vector Search', href: '/ai-platform/vector-search', icon: FileSearch },
-      { label: 'Guardrails', href: '/ai-platform/guardrails', icon: Shield },
+      { label: 'Conversations', href: '/ai-platform/conversations', icon: MessagesSquare },
       { label: 'Doc Intelligence', href: '/ai-platform/document-intelligence', icon: FileText },
-      { label: 'Evaluation', href: '/ai-platform/evaluation', icon: Target },
+      { label: 'Voice AI', href: '/ai-platform/voice', icon: Mic },
+      { label: 'Vision AI', href: '/ai-platform/vision', icon: Eye },
+      { label: 'Automation', href: '/ai-platform/automation', icon: Zap },
+      { label: 'AI Search', href: '/ai-platform/search', icon: Search },
+      { label: 'Governance', href: '/ai-platform/governance', icon: Shield },
       { label: 'Costs', href: '/ai-platform/costs', icon: DollarSign },
       { label: 'Observability', href: '/ai-platform/observability', icon: Activity },
-      { label: 'Approvals', href: '/ai-platform/approvals', icon: CheckSquare },
     ],
   },
   {
