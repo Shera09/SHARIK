@@ -83,6 +83,8 @@ import {
   Gift,
   Radio,
   ArrowRightLeft,
+  Plug,
+  Lock,
 } from 'lucide-react';
 
 export type NavItem = {
@@ -255,11 +257,18 @@ export const navSections: NavSection[] = [
     ],
   },
   {
-    title: 'Integration',
+    title: 'Integration Hub',
     items: [
-      { label: 'System Health', href: '/integration/system-health', icon: Activity },
-      { label: 'AI Usage', href: '/integration/ai-usage', icon: DollarSign },
-      { label: 'Event Bus', href: '/integration/events', icon: Zap },
+      { label: 'Command Center', href: '/integration', icon: LayoutDashboard },
+      { label: 'API Gateway', href: '/integration/api-gateway', icon: Key },
+      { label: 'Webhooks', href: '/integration/webhooks', icon: Zap },
+      { label: 'Event Bus', href: '/integration/events', icon: GitBranch },
+      { label: 'AI Routing', href: '/integration/ai-routing', icon: Brain },
+      { label: 'Connectors', href: '/integration/connectors', icon: Plug },
+      { label: 'Marketplace', href: '/integration/marketplace', icon: Store },
+      { label: 'Developer', href: '/integration/developer', icon: Code },
+      { label: 'Monitoring', href: '/integration/monitoring', icon: Activity },
+      { label: 'Secrets', href: '/integration/secrets', icon: Lock },
     ],
   },
   {
