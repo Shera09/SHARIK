@@ -230,7 +230,7 @@ export default function AIMobileAssistantPage() {
                     <div key={cmd.command} className="p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <Mic className="h-4 w-4 text-blue-500" />
-                        <p className="text-sm font-medium">"{cmd.command}"</p>
+                        <p className="text-sm font-medium">&quot;{cmd.command}&quot;</p>
                       </div>
                       <p className="text-xs text-muted-foreground ml-6">{cmd.result}</p>
                       <p className="text-xs text-muted-foreground ml-6 mt-1">{cmd.time}</p>

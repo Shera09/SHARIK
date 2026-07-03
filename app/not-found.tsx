@@ -46,7 +46,7 @@ export default function NotFound() {
           </h1>
           <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
             Oops! The page you are looking for does not exist or has been moved.
-            Let's get you back on track.
+            Let&apos;s get you back on track.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

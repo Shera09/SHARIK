@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Activity,
@@ -108,11 +108,7 @@ export default function AuditLogPage() {
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 20;
 
-  useEffect(() => {
-    loadAuditLogs();
-  }, [categoryFilter, actionTypeFilter, resultFilter, page]);
-
-  async function loadAuditLogs() {
+  const loadAuditLogs = useCallback(async () => {
     setLoading(true);
     try {
       let query = supabase
@@ -140,7 +136,11 @@ export default function AuditLogPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [categoryFilter, actionTypeFilter, resultFilter, page]);
+
+  useEffect(() => {
+    loadAuditLogs();
+  }, [loadAuditLogs]);
 
   const filteredLogs = logs.filter(log => {
     if (!searchTerm) return true;

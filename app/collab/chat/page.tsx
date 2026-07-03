@@ -14,7 +14,7 @@ import {
   MoreHorizontal,
   Smile,
   Paperclip,
-  Image,
+  Image as ImageIcon,
   Mic,
   Pin,
   Users,
@@ -377,7 +377,7 @@ export default function TeamChatPage() {
                   <div className="flex items-center gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8"><Plus className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8"><Paperclip className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><Image className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8"><ImageIcon className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8"><Smile className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                       <Sparkles className="h-4 w-4 text-purple-500" />

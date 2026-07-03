@@ -24,7 +24,7 @@ import {
   Volume2,
   Mic,
   Paperclip,
-  Image,
+  Image as ImageIcon,
   FileText,
   X,
   PhoneOff,
@@ -497,7 +497,7 @@ export default function UnifedInboxPage() {
                       <Paperclip className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl">
-                      <Image className="h-4 w-4" />
+                      <ImageIcon className="h-4 w-4" />
                     </Button>
                   </div>
                   <div className="flex-1">

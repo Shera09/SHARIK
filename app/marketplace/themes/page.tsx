@@ -89,10 +89,10 @@ export default function ThemeStorePage() {
     ]);
 
     if (themesRes.data) setThemes(themesRes.data);
-    if (installedRes.data) {
+    if (installedRes.data && themesRes.data) {
       setInstalledThemes(installedRes.data.map(t => ({
         ...t,
-        theme_name: themes.find(th => th.id === t.theme_id)?.name || 'Unknown',
+        theme_name: themesRes.data.find(th => th.id === t.theme_id)?.name || 'Unknown',
       })));
       const active = installedRes.data.find(t => t.is_active);
       if (active) setActiveThemeId(active.theme_id);

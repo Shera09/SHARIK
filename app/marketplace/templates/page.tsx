@@ -123,7 +123,7 @@ export default function TemplateLibraryPage() {
     loadData();
   }, [loadData]);
 
-  const useTemplate = async (template: Template) => {
+  const applyTemplate = async (template: Template) => {
     const { error } = await supabase.from('cloned_templates').insert({
       template_id: template.id,
       name: `My ${template.name}`,
@@ -334,7 +334,7 @@ export default function TemplateLibraryPage() {
               <div className="flex gap-2 pt-4">
                 <Button
                   className="flex-1 gap-2"
-                  onClick={() => { useTemplate(selectedTemplate); setPreviewDialog(false); }}
+                  onClick={() => { applyTemplate(selectedTemplate); setPreviewDialog(false); }}
                 >
                   <Copy className="h-4 w-4" />
                   Use Template

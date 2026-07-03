@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Monitor,
@@ -72,23 +72,22 @@ export default function SessionManagementPage() {
   const [loading, setLoading] = useState(true);
   const [terminating, setTerminating] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
     const [sessionsRes, historyRes] = await Promise.all([
-      supabase.from('user_sessions').select('*').eq('user_id', user?.id).eq('is_active', true).order('last_activity_at', { ascending: false }),
+      supabase.from('user_sessions').select('*').eq('user_id', user.id).eq('is_active', true).order('last_activity_at', { ascending: false }),
       supabase.from('login_history').select('*').order('login_at', { ascending: false }).limit(20),
     ]);
 
     if (sessionsRes.data) setSessions(sessionsRes.data as Session[]);
     if (historyRes.data) setLoginHistory(historyRes.data as LoginRecord[]);
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const terminateSession = async (sessionId: string) => {
     setTerminating(sessionId);

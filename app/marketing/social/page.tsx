@@ -7,7 +7,7 @@ import {
   Plus,
   Search,
   Calendar,
-  Image,
+  Image as ImageIcon,
   Video,
   FileText,
   MoreHorizontal,
@@ -119,7 +119,7 @@ export default function SocialMediaPage() {
                   <div>
                     <Label>Media</Label>
                     <div className="flex gap-2 mt-2">
-                      <Button variant="outline" size="sm" className="gap-1"><Image className="h-4 w-4" /> Image</Button>
+                      <Button variant="outline" size="sm" className="gap-1"><ImageIcon className="h-4 w-4" /> Image</Button>
                       <Button variant="outline" size="sm" className="gap-1"><Video className="h-4 w-4" /> Video</Button>
                     </div>
                   </div>
@@ -224,7 +224,7 @@ export default function SocialMediaPage() {
                   <div className="hidden md:flex items-center gap-4">
                     {post.media_type && (
                       <Badge variant="outline" className="text-xs">
-                        {post.media_type === 'image' ? <Image className="h-3 w-3 mr-1" /> : <Video className="h-3 w-3 mr-1" />}
+                        {post.media_type === 'image' ? <ImageIcon className="h-3 w-3 mr-1" /> : <Video className="h-3 w-3 mr-1" />}
                         {post.media_type}
                       </Badge>
                     )}

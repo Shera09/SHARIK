@@ -19,7 +19,7 @@ import {
   BarChart3,
   FileText,
   Calendar,
-  Image,
+  Image as ImageIcon,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -129,7 +129,7 @@ export default function WhatsAppMarketingPage() {
                   <Textarea className="mt-1.5" placeholder="Type your WhatsApp message..." rows={4} />
                 </div>
                 <div className="flex items-center gap-4">
-                  <Button variant="outline" size="sm" className="gap-1"><Image className="h-4 w-4" /> Add Image</Button>
+                  <Button variant="outline" size="sm" className="gap-1"><ImageIcon className="h-4 w-4" /> Add Image</Button>
                   <Button variant="outline" size="sm" className="gap-1"><FileText className="h-4 w-4" /> Add Document</Button>
                 </div>
               </div>

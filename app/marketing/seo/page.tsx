@@ -12,7 +12,7 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
-  Image,
+  Image as ImageIcon,
   Link2,
   FileText,
   Gauge,
@@ -138,7 +138,7 @@ export default function SEOToolkitPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem><Edit className="h-4 w-4 mr-2" /> Optimize</DropdownMenuItem>
-                          <DropdownMenuItem><Image className="h-4 w-4 mr-2" /> Images</DropdownMenuItem>
+                          <DropdownMenuItem><ImageIcon className="h-4 w-4 mr-2" /> Images</DropdownMenuItem>
                           <DropdownMenuItem><FileText className="h-4 w-4 mr-2" /> Content</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

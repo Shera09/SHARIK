@@ -575,7 +575,7 @@ export default function DeveloperPortalPage() {
               <div className="py-4">
                 <div className="p-4 rounded-lg bg-success/10 mb-4">
                   <p className="text-sm text-success font-medium mb-2">API key created successfully!</p>
-                  <p className="text-xs text-muted-foreground">Save this key securely. You won't be able to see it again.</p>
+                  <p className="text-xs text-muted-foreground">Save this key securely. You &apos;won&apos;t be able to see it again.</p>
                 </div>
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
                   <code className="text-sm flex-1 break-all">{generatedKey}</code>

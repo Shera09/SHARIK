@@ -105,7 +105,7 @@ export function CommandPalette({
         placeholder="Type a command or search across all modules..."
       />
       <CommandList>
-        <CommandEmpty>No results found for "{search}".</CommandEmpty>
+        <CommandEmpty>No results found for &quot;{search}&quot;.</CommandEmpty>
 
         {grouped.map(({ group, items }, idx) => (
           <div key={group}>

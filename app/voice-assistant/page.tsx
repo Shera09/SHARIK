@@ -320,7 +320,7 @@ export default function VoiceAssistantPage() {
               <li>Speak clearly and naturally</li>
               <li>Use specific customer names</li>
               <li>Mention dates in DD/MM format</li>
-              <li>Say "cancel" to stop any action</li>
+              <li>Say &quot;cancel&quot; to stop any action</li>
             </ul>
           </div>
         </div>
