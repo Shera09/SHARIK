@@ -415,7 +415,7 @@ export default function FinanceDashboardPage() {
 
         {/* Bank Accounts */}
         <Card>
-          <CardHeader className="flex-flex-row items-center justify-between">
+          <CardHeader className="flex-row items-center justify-between">
             <div>
               <CardTitle>Bank Accounts</CardTitle>
               <CardDescription>Account balances overview</CardDescription>

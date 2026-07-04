@@ -66,6 +66,18 @@ export default function EmployeesPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({
+    first_name: '',
+    last_name: '',
+    employee_code: '',
+    email: '',
+    phone: '',
+    department_id: '',
+    designation_id: '',
+    date_of_joining: '',
+    work_location: '',
+  });
 
   useEffect(() => {
     loadData();
@@ -118,6 +130,59 @@ export default function EmployeesPage() {
     terminated: { color: 'bg-gray-500/10 text-gray-700', label: 'Terminated' },
   };
 
+  async function handleCreateEmployee() {
+    if (!newEmployee.first_name || !newEmployee.last_name || !newEmployee.email || !newEmployee.employee_code) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { data, error } = await supabase
+        .from('hr_employees')
+        .insert({
+          ...newEmployee,
+          employment_status: 'probation',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setEmployees(prev => [data, ...prev]);
+        setNewEmployee({
+          first_name: '',
+          last_name: '',
+          employee_code: '',
+          email: '',
+          phone: '',
+          department_id: '',
+          designation_id: '',
+          date_of_joining: '',
+          work_location: '',
+        });
+        setCreateDialogOpen(false);
+      }
+    } catch (error) {
+      console.error('Error creating employee:', error);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeactivateEmployee(emp: Employee) {
+    try {
+      const { error } = await supabase
+        .from('hr_employees')
+        .update({ employment_status: 'terminated' })
+        .eq('id', emp.id);
+
+      if (error) throw error;
+      setEmployees(prev => prev.map(e => e.id === emp.id ? { ...e, employment_status: 'terminated' } : e));
+    } catch (error) {
+      console.error('Error deactivating employee:', error);
+    }
+  }
+
   return (
     <AppShell>
       <PageHeader
@@ -149,66 +214,107 @@ export default function EmployeesPage() {
                 </DialogHeader>
                 <div className="grid grid-cols-2 gap-4 pt-4">
                   <div>
-                    <Label>First Name</Label>
-                    <Input className="mt-1.5" placeholder="First name" />
+                    <Label>First Name *</Label>
+                    <Input
+                      className="mt-1.5"
+                      placeholder="First name"
+                      value={newEmployee.first_name}
+                      onChange={(e) => setNewEmployee(prev => ({ ...prev, first_name: e.target.value }))}
+                    />
                   </div>
                   <div>
-                    <Label>Last Name</Label>
-                    <Input className="mt-1.5" placeholder="Last name" />
+                    <Label>Last Name *</Label>
+                    <Input
+                      className="mt-1.5"
+                      placeholder="Last name"
+                      value={newEmployee.last_name}
+                      onChange={(e) => setNewEmployee(prev => ({ ...prev, last_name: e.target.value }))}
+                    />
                   </div>
                   <div>
-                    <Label>Employee Code</Label>
-                    <Input className="mt-1.5" placeholder="EMP001" />
+                    <Label>Employee Code *</Label>
+                    <Input
+                      className="mt-1.5"
+                      placeholder="EMP001"
+                      value={newEmployee.employee_code}
+                      onChange={(e) => setNewEmployee(prev => ({ ...prev, employee_code: e.target.value }))}
+                    />
                   </div>
                   <div>
-                    <Label>Email</Label>
-                    <Input className="mt-1.5" type="email" placeholder="email@webhoster.ai" />
+                    <Label>Email *</Label>
+                    <Input
+                      className="mt-1.5"
+                      type="email"
+                      placeholder="email@webhoster.ai"
+                      value={newEmployee.email}
+                      onChange={(e) => setNewEmployee(prev => ({ ...prev, email: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <Label>Phone</Label>
-                    <Input className="mt-1.5" placeholder="+91 98765 43210" />
+                    <Input
+                      className="mt-1.5"
+                      placeholder="+91 98765 43210"
+                      value={newEmployee.phone}
+                      onChange={(e) => setNewEmployee(prev => ({ ...prev, phone: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <Label>Date of Joining</Label>
-                    <Input className="mt-1.5" type="date" />
+                    <Input
+                      className="mt-1.5"
+                      type="date"
+                      value={newEmployee.date_of_joining}
+                      onChange={(e) => setNewEmployee(prev => ({ ...prev, date_of_joining: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <Label>Department</Label>
-                    <Select>
+                    <Select value={newEmployee.department_id} onValueChange={(v) => setNewEmployee(prev => ({ ...prev, department_id: v }))}>
                       <SelectTrigger className="mt-1.5">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="engineering">Engineering</SelectItem>
-                        <SelectItem value="sales">Sales</SelectItem>
-                        <SelectItem value="hr">HR</SelectItem>
-                        <SelectItem value="finance">Finance</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
+                        <SelectItem value="Engineering">Engineering</SelectItem>
+                        <SelectItem value="Sales">Sales</SelectItem>
+                        <SelectItem value="HR">HR</SelectItem>
+                        <SelectItem value="Finance">Finance</SelectItem>
+                        <SelectItem value="Marketing">Marketing</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
                     <Label>Designation</Label>
-                    <Select>
+                    <Select value={newEmployee.designation_id} onValueChange={(v) => setNewEmployee(prev => ({ ...prev, designation_id: v }))}>
                       <SelectTrigger className="mt-1.5">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="sde">Senior Engineer</SelectItem>
-                        <SelectItem value="tl">Tech Lead</SelectItem>
-                        <SelectItem value="mgr">Manager</SelectItem>
-                        <SelectItem value="arch">Architect</SelectItem>
+                        <SelectItem value="Senior Engineer">Senior Engineer</SelectItem>
+                        <SelectItem value="Tech Lead">Tech Lead</SelectItem>
+                        <SelectItem value="Manager">Manager</SelectItem>
+                        <SelectItem value="Architect">Architect</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="col-span-2">
                     <Label>Work Location</Label>
-                    <Input className="mt-1.5" placeholder="Office location" />
+                    <Input
+                      className="mt-1.5"
+                      placeholder="Office location"
+                      value={newEmployee.work_location}
+                      onChange={(e) => setNewEmployee(prev => ({ ...prev, work_location: e.target.value }))}
+                    />
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
                   <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-                  <Button onClick={() => setCreateDialogOpen(false)}>Create Employee</Button>
+                  <Button
+                    onClick={handleCreateEmployee}
+                    disabled={saving || !newEmployee.first_name || !newEmployee.last_name || !newEmployee.email || !newEmployee.employee_code}
+                  >
+                    {saving ? 'Creating...' : 'Create Employee'}
+                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -300,10 +406,8 @@ export default function EmployeesPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem><Eye className="h-4 w-4 mr-2" /> View Profile</DropdownMenuItem>
-                          <DropdownMenuItem><Edit className="h-4 w-4 mr-2" /> Edit</DropdownMenuItem>
-                          <DropdownMenuItem><Mail className="h-4 w-4 mr-2" /> Send Email</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600"><Trash2 className="h-4 w-4 mr-2" /> Deactivate</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => window.location.href = `mailto:${emp.email}`}><Mail className="h-4 w-4 mr-2" /> Send Email</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600" onClick={() => handleDeactivateEmployee(emp)}><UserX className="h-4 w-4 mr-2" /> Deactivate</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>

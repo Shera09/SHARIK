@@ -107,8 +107,39 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      // In a real app, verify the OTP from the database
-      // For now, we'll proceed to password reset
+      // Verify the OTP from the database
+      const { data: otpRecord, error: otpError } = await supabase
+        .from('otp_codes')
+        .select('*')
+        .eq('email', email)
+        .eq('otp_code', otpCode)
+        .eq('otp_type', 'email')
+        .eq('purpose', 'reset_password')
+        .single();
+
+      if (otpError || !otpRecord) {
+        setError('Invalid OTP. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if OTP is expired (10 minutes)
+      const createdAt = new Date(otpRecord.created_at);
+      const now = new Date();
+      const diffMinutes = (now.getTime() - createdAt.getTime()) / (1000 * 60);
+
+      if (diffMinutes > 10) {
+        setError('OTP has expired. Please request a new one.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Delete used OTP
+      await supabase
+        .from('otp_codes')
+        .delete()
+        .eq('id', otpRecord.id);
+
       setStep('reset');
       setIsLoading(false);
     } catch (err) {
@@ -141,6 +172,36 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
+      // Use recovery flow - the user should have clicked the email link
+      // Try to get session from URL hash (from recovery email)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+
+      if (accessToken && refreshToken) {
+        // Set session from recovery link
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (sessionError) {
+          setError('Session expired. Please request a new reset link.');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Check if we have a valid session
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        // No session - user needs to click the email link first
+        setError('Please click the reset link sent to your email first, or request a new reset link.');
+        setIsLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });

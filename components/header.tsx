@@ -62,7 +62,11 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
         .select('id, title, message, type, read, created_at')
         .order('created_at', { ascending: false })
         .limit(10)
-        .then(({ data }) => {
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Failed to load notifications:', error.message);
+            return;
+          }
           if (data) setNotifications(data);
         });
     }

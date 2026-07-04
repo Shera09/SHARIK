@@ -85,6 +85,16 @@ export default function CampaignsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [newCampaign, setNewCampaign] = useState({
+    campaign_name: '',
+    campaign_type: '',
+    start_date: '',
+    end_date: '',
+    budget: '',
+    target_audience: '',
+    channels: [] as string[],
+  });
 
   useEffect(() => {
     loadCampaigns();
@@ -125,6 +135,58 @@ export default function CampaignsPage() {
     totalSpent: mockCampaigns.reduce((sum, c) => sum + (c.spent_amount || 0), 0),
   };
 
+  function toggleChannel(channel: string) {
+    setNewCampaign(prev => ({
+      ...prev,
+      channels: prev.channels.includes(channel)
+        ? prev.channels.filter(c => c !== channel)
+        : [...prev.channels, channel]
+    }));
+  }
+
+  async function handleCreateCampaign() {
+    if (!newCampaign.campaign_name || !newCampaign.campaign_type || !newCampaign.start_date) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { data, error } = await supabase
+        .from('marketing_campaigns')
+        .insert({
+          campaign_name: newCampaign.campaign_name,
+          campaign_type: newCampaign.campaign_type,
+          campaign_status: 'draft',
+          start_date: newCampaign.start_date,
+          end_date: newCampaign.end_date || newCampaign.start_date,
+          budget: parseFloat(newCampaign.budget) || 0,
+          spent_amount: 0,
+          channels: newCampaign.channels.length > 0 ? newCampaign.channels : [newCampaign.campaign_type],
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setCampaigns(prev => [data, ...prev]);
+        setNewCampaign({
+          campaign_name: '',
+          campaign_type: '',
+          start_date: '',
+          end_date: '',
+          budget: '',
+          target_audience: '',
+          channels: [],
+        });
+        setCreateDialogOpen(false);
+      }
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <AppShell>
       <PageHeader
@@ -146,12 +208,17 @@ export default function CampaignsPage() {
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Campaign Name</Label>
-                    <Input className="mt-1.5" placeholder="e.g., Summer Sale 2026" />
+                    <Label>Campaign Name *</Label>
+                    <Input
+                      className="mt-1.5"
+                      placeholder="e.g., Summer Sale 2026"
+                      value={newCampaign.campaign_name}
+                      onChange={(e) => setNewCampaign(prev => ({ ...prev, campaign_name: e.target.value }))}
+                    />
                   </div>
                   <div>
-                    <Label>Campaign Type</Label>
-                    <Select>
+                    <Label>Campaign Type *</Label>
+                    <Select value={newCampaign.campaign_type} onValueChange={(v) => setNewCampaign(prev => ({ ...prev, campaign_type: v }))}>
                       <SelectTrigger className="mt-1.5">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
@@ -168,22 +235,22 @@ export default function CampaignsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Start Date</Label>
-                    <Input className="mt-1.5" type="date" />
+                    <Label>Start Date *</Label>
+                    <Input className="mt-1.5" type="date" value={newCampaign.start_date} onChange={(e) => setNewCampaign(prev => ({ ...prev, start_date: e.target.value }))} />
                   </div>
                   <div>
                     <Label>End Date</Label>
-                    <Input className="mt-1.5" type="date" />
+                    <Input className="mt-1.5" type="date" value={newCampaign.end_date} onChange={(e) => setNewCampaign(prev => ({ ...prev, end_date: e.target.value }))} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Budget (₹)</Label>
-                    <Input className="mt-1.5" type="number" placeholder="50000" />
+                    <Input className="mt-1.5" type="number" placeholder="50000" value={newCampaign.budget} onChange={(e) => setNewCampaign(prev => ({ ...prev, budget: e.target.value }))} />
                   </div>
                   <div>
                     <Label>Target Audience</Label>
-                    <Select>
+                    <Select value={newCampaign.target_audience} onValueChange={(v) => setNewCampaign(prev => ({ ...prev, target_audience: v }))}>
                       <SelectTrigger className="mt-1.5">
                         <SelectValue placeholder="Select segment" />
                       </SelectTrigger>
@@ -199,16 +266,18 @@ export default function CampaignsPage() {
                 <div>
                   <Label>Channels</Label>
                   <div className="flex gap-2 mt-2">
-                    <Button variant="outline" size="sm" className="gap-1"><Mail className="h-3 w-3" /> Email</Button>
-                    <Button variant="outline" size="sm" className="gap-1"><MessageSquare className="h-3 w-3" /> WhatsApp</Button>
-                    <Button variant="outline" size="sm" className="gap-1"><Smartphone className="h-3 w-3" /> SMS</Button>
-                    <Button variant="outline" size="sm" className="gap-1"><Share2 className="h-3 w-3" /> Social</Button>
+                    <Button variant={newCampaign.channels.includes('email') ? 'default' : 'outline'} size="sm" className="gap-1" onClick={() => toggleChannel('email')}><Mail className="h-3 w-3" /> Email</Button>
+                    <Button variant={newCampaign.channels.includes('whatsapp') ? 'default' : 'outline'} size="sm" className="gap-1" onClick={() => toggleChannel('whatsapp')}><MessageSquare className="h-3 w-3" /> WhatsApp</Button>
+                    <Button variant={newCampaign.channels.includes('sms') ? 'default' : 'outline'} size="sm" className="gap-1" onClick={() => toggleChannel('sms')}><Smartphone className="h-3 w-3" /> SMS</Button>
+                    <Button variant={newCampaign.channels.includes('social') ? 'default' : 'outline'} size="sm" className="gap-1" onClick={() => toggleChannel('social')}><Share2 className="h-3 w-3" /> Social</Button>
                   </div>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-                <Button onClick={() => setCreateDialogOpen(false)}>Create Campaign</Button>
+                <Button onClick={handleCreateCampaign} disabled={saving || !newCampaign.campaign_name || !newCampaign.campaign_type || !newCampaign.start_date}>
+                  {saving ? 'Creating...' : 'Create Campaign'}
+                </Button>
               </div>
             </DialogContent>
           </Dialog>

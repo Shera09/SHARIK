@@ -58,6 +58,8 @@ const sections: SettingSection[] = [
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const [activeSection, setActiveSection] = useState('company');
+  const [saving, setSaving] = useState(false);
+  const [accentColor, setAccentColor] = useState('Teal');
 
   const [company, setCompany] = useState({
     name: 'WebHoster Solutions',
@@ -101,14 +103,20 @@ export default function SettingsPage() {
     whatsappAlerts: false,
   });
 
-  const [saving, setSaving] = useState(false);
-
   const save = async () => {
     setSaving(true);
     await new Promise((r) => setTimeout(r, 600));
     setSaving(false);
     toast.success('Settings saved');
   };
+
+  const accentColors = [
+    { name: 'Blue', color: 'hsl(221 83% 53%)' },
+    { name: 'Teal', color: 'hsl(174 72% 40%)' },
+    { name: 'Green', color: 'hsl(142 71% 40%)' },
+    { name: 'Orange', color: 'hsl(25 95% 50%)' },
+    { name: 'Red', color: 'hsl(0 84% 55%)' },
+  ];
 
   const currentSection = sections.find((s) => s.id === activeSection);
 
@@ -256,15 +264,22 @@ export default function SettingsPage() {
                   <Label className="text-sm font-medium">Accent Color</Label>
                   <p className="text-xs text-muted-foreground">Primary color used across the UI</p>
                   <div className="flex gap-3">
-                    {[
-                      { name: 'Blue', color: 'hsl(221 83% 53%)' },
-                      { name: 'Teal', color: 'hsl(174 72% 40%)' },
-                      { name: 'Green', color: 'hsl(142 71% 40%)' },
-                      { name: 'Orange', color: 'hsl(25 95% 50%)' },
-                      { name: 'Red', color: 'hsl(0 84% 55%)' },
-                    ].map((c) => (
-                      <button key={c.name} title={c.name} className="group relative h-9 w-9 rounded-full ring-2 ring-border ring-offset-2 transition-transform hover:scale-110">
+                    {accentColors.map((c) => (
+                      <button
+                        key={c.name}
+                        title={c.name}
+                        onClick={() => setAccentColor(c.name)}
+                        className={cn(
+                          'group relative h-9 w-9 rounded-full ring-2 ring-offset-2 transition-transform hover:scale-110',
+                          accentColor === c.name ? 'ring-primary' : 'ring-border'
+                        )}
+                      >
                         <span className="block h-full w-full rounded-full" style={{ background: c.color }} />
+                        {accentColor === c.name && (
+                          <span className="absolute inset-0 flex items-center justify-center">
+                            <Check className="h-4 w-4 text-white drop-shadow-sm" />
+                          </span>
+                        )}
                       </button>
                     ))}
                   </div>

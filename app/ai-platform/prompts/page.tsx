@@ -71,6 +71,10 @@ export default function PromptLibraryPage() {
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [previewVariables, setPreviewVariables] = useState<Record<string, any>>({});
+  const [testResult, setTestResult] = useState<string | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -121,6 +125,52 @@ export default function PromptLibraryPage() {
 
     await navigator.clipboard.writeText(content);
     toast.success('Prompt copied to clipboard');
+  };
+
+  const handleTestPrompt = async () => {
+    if (!selectedPrompt) return;
+    setTesting(true);
+    setTestResult(null);
+
+    try {
+      // Simulate AI test - in production this would call an actual AI API
+      await new Promise(r => setTimeout(r, 1500));
+      const renderedPrompt = renderPreview(selectedPrompt);
+      setTestResult(`[AI Response]\n\nBased on the prompt:\n"${renderedPrompt.slice(0, 100)}..."\n\nThis is a simulated response. In production, this would call the configured AI model.`);
+      toast.success('Prompt tested successfully');
+    } catch (error) {
+      toast.error('Failed to test prompt');
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const handleStartEdit = () => {
+    if (!selectedPrompt) return;
+    setEditedContent(selectedPrompt.content);
+    setEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedPrompt) return;
+    try {
+      const { error } = await supabase
+        .from('prompts')
+        .update({
+          content: editedContent,
+          version: selectedPrompt.version + 1,
+        })
+        .eq('id', selectedPrompt.id);
+
+      if (error) throw error;
+
+      setPrompts(prev => prev.map(p => p.id === selectedPrompt.id ? { ...p, content: editedContent, version: selectedPrompt.version + 1 } : p));
+      setSelectedPrompt(prev => prev ? { ...prev, content: editedContent, version: selectedPrompt.version + 1 } : null);
+      setEditing(false);
+      toast.success('Prompt updated');
+    } catch (error) {
+      toast.error('Failed to update prompt');
+    }
   };
 
   const getApprovalBadge = (status: string) => {
@@ -372,19 +422,42 @@ export default function PromptLibraryPage() {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-4">
-                  <Button className="flex-1 gap-2">
+                  <Button className="flex-1 gap-2" onClick={handleTestPrompt} disabled={testing}>
                     <Play className="h-4 w-4" />
-                    Test Prompt
+                    {testing ? 'Testing...' : 'Test Prompt'}
                   </Button>
-                  <Button variant="outline" className="gap-2">
+                  <Button variant="outline" className="gap-2" onClick={handleStartEdit}>
                     <Edit className="h-4 w-4" />
                     Edit
                   </Button>
-                  <Button variant="outline" className="gap-2">
-                    <History className="h-4 w-4" />
-                    History
+                  <Button variant="outline" className="gap-2" onClick={() => copyPrompt(selectedPrompt)}>
+                    <Copy className="h-4 w-4" />
+                    Copy
                   </Button>
                 </div>
+
+                {/* Test Result */}
+                {testResult && (
+                  <div className="mt-4 p-4 rounded-lg bg-muted/50 border">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Test Output</p>
+                    <pre className="text-sm whitespace-pre-wrap">{testResult}</pre>
+                  </div>
+                )}
+
+                {/* Edit Mode */}
+                {editing && (
+                  <div className="mt-4 space-y-3">
+                    <textarea
+                      value={editedContent}
+                      onChange={(e) => setEditedContent(e.target.value)}
+                      className="w-full h-48 p-3 rounded-lg border bg-muted/30 text-sm font-mono"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleSaveEdit}>Save</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
+                    </div>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="preview">

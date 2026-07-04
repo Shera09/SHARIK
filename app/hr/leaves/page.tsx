@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Calendar,
@@ -32,10 +32,55 @@ import { Label } from '@/components/ui/label';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+
+interface LeaveRequest {
+  id: string;
+  employee_id: string;
+  employee_name?: string;
+  leave_type: string;
+  from_date: string;
+  to_date: string;
+  days: number;
+  status: string;
+  reason: string;
+  created_at: string;
+}
 
 export default function LeavesPage() {
+  const { toast } = useToast();
   const [applyLeaveOpen, setApplyLeaveOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [newLeave, setNewLeave] = useState({
+    leave_type: '',
+    from_date: '',
+    to_date: '',
+    reason: '',
+  });
+
+  useEffect(() => {
+    loadLeaves();
+  }, []);
+
+  async function loadLeaves() {
+    try {
+      const { data, error } = await supabase
+        .from('hr_leave_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (data) setLeaveRequests(data);
+    } catch (error) {
+      console.error('Error loading leaves:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const stats = {
     teamOnLeave: 8,
@@ -53,14 +98,6 @@ export default function LeavesPage() {
     { type: 'Compensatory', code: 'COMP', balance: 3, used: 0, total: 3, color: 'bg-purple-500' },
   ];
 
-  const leaveRequests = [
-    { id: '1', employee: 'Arjun Sharma', code: 'EMP001', type: 'Earned Leave', from: '2024-07-10', to: '2024-07-12', days: 3, status: 'pending', reason: 'Family function' },
-    { id: '2', employee: 'Priya Patel', code: 'EMP002', type: 'Casual Leave', from: '2024-07-08', to: '2024-07-08', days: 1, status: 'approved', reason: 'Personal work' },
-    { id: '3', employee: 'Rahul Kumar', code: 'EMP003', type: 'Sick Leave', from: '2024-07-05', to: '2024-07-06', days: 2, status: 'approved', reason: 'Medical appointment' },
-    { id: '4', employee: 'Anjali Singh', code: 'EMP004', type: 'Earned Leave', from: '2024-07-15', to: '2024-07-19', days: 5, status: 'pending', reason: 'Vacation' },
-    { id: '5', employee: 'Vikram Reddy', code: 'EMP005', type: 'Casual Leave', from: '2024-07-03', to: '2024-07-03', days: 0.5, status: 'rejected', reason: 'Personal work' },
-  ];
-
   const teamOnLeave = [
     { name: 'Meera Nair', type: 'Earned Leave', from: 'Jul 1', to: 'Jul 5' },
     { name: 'Amit Kumar', type: 'Sick Leave', from: 'Jul 2', to: 'Jul 3' },
@@ -73,6 +110,85 @@ export default function LeavesPage() {
     rejected: { color: 'bg-red-500/10 text-red-700' },
     cancelled: { color: 'bg-gray-500/10 text-gray-700' },
   };
+
+  async function handleApplyLeave() {
+    if (!newLeave.leave_type || !newLeave.from_date || !newLeave.to_date || !newLeave.reason) {
+      toast({ title: 'Error', description: 'Please fill all required fields', variant: 'destructive' });
+      return;
+    }
+
+    const fromDate = new Date(newLeave.from_date);
+    const toDate = new Date(newLeave.to_date);
+    const days = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    if (days < 1) {
+      toast({ title: 'Error', description: 'Invalid date range', variant: 'destructive' });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { data, error } = await supabase
+        .from('hr_leave_requests')
+        .insert({
+          leave_type: newLeave.leave_type,
+          from_date: newLeave.from_date,
+          to_date: newLeave.to_date,
+          days,
+          reason: newLeave.reason,
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setLeaveRequests(prev => [data, ...prev]);
+        setNewLeave({ leave_type: '', from_date: '', to_date: '', reason: '' });
+        setApplyLeaveOpen(false);
+        toast({ title: 'Success', description: 'Leave request submitted' });
+      }
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to submit leave request', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleApproveLeave(leave: LeaveRequest) {
+    try {
+      const { error } = await supabase
+        .from('hr_leave_requests')
+        .update({ status: 'approved' })
+        .eq('id', leave.id);
+
+      if (error) throw error;
+      setLeaveRequests(prev => prev.map(l => l.id === leave.id ? { ...l, status: 'approved' } : l));
+      toast({ title: 'Success', description: 'Leave request approved' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to approve leave', variant: 'destructive' });
+    }
+  }
+
+  async function handleRejectLeave(leave: LeaveRequest) {
+    try {
+      const { error } = await supabase
+        .from('hr_leave_requests')
+        .update({ status: 'rejected' })
+        .eq('id', leave.id);
+
+      if (error) throw error;
+      setLeaveRequests(prev => prev.map(l => l.id === leave.id ? { ...l, status: 'rejected' } : l));
+      toast({ title: 'Success', description: 'Leave request rejected' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to reject leave', variant: 'destructive' });
+    }
+  }
+
+  const displayRequests = leaveRequests.length > 0 ? leaveRequests : [
+    { id: '1', employee_id: '1', employee_name: 'Arjun Sharma', leave_type: 'Earned Leave', from_date: '2024-07-10', to_date: '2024-07-12', days: 3, status: 'pending', reason: 'Family function', created_at: new Date().toISOString() },
+    { id: '2', employee_id: '2', employee_name: 'Priya Patel', leave_type: 'Casual Leave', from_date: '2024-07-08', to_date: '2024-07-08', days: 1, status: 'approved', reason: 'Personal work', created_at: new Date().toISOString() },
+  ];
 
   return (
     <AppShell>
@@ -96,41 +212,37 @@ export default function LeavesPage() {
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div>
-                  <Label>Leave Type</Label>
-                  <Select>
+                  <Label>Leave Type *</Label>
+                  <Select value={newLeave.leave_type} onValueChange={(v) => setNewLeave(prev => ({ ...prev, leave_type: v }))}>
                     <SelectTrigger className="mt-1.5">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="cl">Casual Leave</SelectItem>
-                      <SelectItem value="sl">Sick Leave</SelectItem>
-                      <SelectItem value="el">Earned Leave</SelectItem>
-                      <SelectItem value="comp">Compensatory</SelectItem>
+                      <SelectItem value="Casual Leave">Casual Leave</SelectItem>
+                      <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                      <SelectItem value="Earned Leave">Earned Leave</SelectItem>
+                      <SelectItem value="Compensatory">Compensatory</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>From Date</Label>
-                    <Input className="mt-1.5" type="date" />
+                    <Label>From Date *</Label>
+                    <Input className="mt-1.5" type="date" value={newLeave.from_date} onChange={(e) => setNewLeave(prev => ({ ...prev, from_date: e.target.value }))} />
                   </div>
                   <div>
-                    <Label>To Date</Label>
-                    <Input className="mt-1.5" type="date" />
+                    <Label>To Date *</Label>
+                    <Input className="mt-1.5" type="date" value={newLeave.to_date} onChange={(e) => setNewLeave(prev => ({ ...prev, to_date: e.target.value }))} />
                   </div>
                 </div>
                 <div>
-                  <Label>Reason</Label>
-                  <Input className="mt-1.5" placeholder="Enter reason for leave" />
-                </div>
-                <div>
-                  <Label>Contact Number (Optional)</Label>
-                  <Input className="mt-1.5" placeholder="+91" />
+                  <Label>Reason *</Label>
+                  <Input className="mt-1.5" placeholder="Enter reason for leave" value={newLeave.reason} onChange={(e) => setNewLeave(prev => ({ ...prev, reason: e.target.value }))} />
                 </div>
               </div>
               <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => setApplyLeaveOpen(false)}>Cancel</Button>
-                <Button onClick={() => setApplyLeaveOpen(false)}>Submit Request</Button>
+                <Button onClick={handleApplyLeave} disabled={saving}>{saving ? 'Submitting...' : 'Submit Request'}</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -245,32 +357,38 @@ export default function LeavesPage() {
           <CardDescription>Recent leave applications</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="divide-y">
-            {leaveRequests.map((req, i) => (
-              <div key={req.id} className="flex items-center justify-between p-4 hover:bg-muted/30">
-                <div className="flex items-center gap-4">
-                  <Avatar>
-                    <AvatarFallback>{req.employee.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{req.employee}</p>
-                    <p className="text-sm text-muted-foreground">{req.code} | {req.type}</p>
+          {loading ? (
+            <div className="p-4 space-y-3">
+              {[1, 2, 3].map(i => <div key={i} className="h-16 rounded shimmer" />)}
+            </div>
+          ) : (
+            <div className="divide-y">
+              {displayRequests.map((req) => (
+                <div key={req.id} className="flex items-center justify-between p-4 hover:bg-muted/30">
+                  <div className="flex items-center gap-4">
+                    <Avatar>
+                      <AvatarFallback>{(req.employee_name || 'U').split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{req.employee_name || 'Employee'}</p>
+                      <p className="text-sm text-muted-foreground">{req.leave_type}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm">{req.from} - {req.to}</p>
-                  <p className="text-xs text-muted-foreground">{req.days} day(s)</p>
-                </div>
-                <Badge className={statusConfig[req.status]?.color}>{req.status}</Badge>
-                {req.status === 'pending' && (
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline">Reject</Button>
-                    <Button size="sm">Approve</Button>
+                  <div className="text-right">
+                    <p className="text-sm">{req.from_date} - {req.to_date}</p>
+                    <p className="text-xs text-muted-foreground">{req.days} day(s)</p>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+                  <Badge className={statusConfig[req.status]?.color}>{req.status}</Badge>
+                  {req.status === 'pending' && (
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => handleRejectLeave(req)}>Reject</Button>
+                      <Button size="sm" onClick={() => handleApproveLeave(req)}>Approve</Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </AppShell>

@@ -48,12 +48,12 @@ export function UserDropdown() {
   const currentLocale = profile?.locale || 'en';
 
   const handleThemeChange = async (theme: string) => {
-    await updateProfile({ theme } as any);
+    await updateProfile({ theme: theme as 'light' | 'dark' | 'system' });
     setShowThemeMenu(false);
   };
 
   const handleLanguageChange = async (locale: string) => {
-    await updateProfile({ locale } as any);
+    await updateProfile({ locale });
     setShowLanguageMenu(false);
   };
 
