@@ -1,6 +1,5 @@
 [build]
-command = "npx next build"
-publish = ".next"
+command = "UV_THREADPOOL_SIZE=16 npx next build"
 
 [[plugins]]
 package = "@netlify/plugin-nextjs"
