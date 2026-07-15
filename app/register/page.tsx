@@ -180,12 +180,24 @@ export default function RegisterPage() {
       if (orgData) {
         await supabase
           .from('auth_profiles')
-          .update({
+          .upsert({
+            id: userId,
             organization_id: orgData.id,
             full_name: formData.ownerName,
             phone: formData.phone,
-          })
-          .eq('id', userId);
+          });
+
+        // 3.5. Create security user
+        await supabase
+          .from('security_users')
+          .insert({
+            id: userId,
+            email: formData.email,
+            full_name: formData.ownerName,
+            phone: formData.phone,
+            tenant_id: orgData.id,
+            status: 'active',
+          });
 
         // 4. Create user role
         await supabase
