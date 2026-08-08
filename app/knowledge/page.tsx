@@ -86,6 +86,7 @@ export default function KnowledgePage() {
     const { data, error } = await supabase
       .from('knowledge_base')
       .select('*')
+      .is('deleted_at', null)
       .order('updated_at', { ascending: false });
     if (!error) setArticles(data || []);
     setLoading(false);
@@ -113,10 +114,10 @@ export default function KnowledgePage() {
     setEditing(a);
     setForm({
       title: a.title,
-      content: a.content,
       category: a.category,
+      content: a.content,
       tags: (a.tags || []).join(', '),
-      status: a.status,
+      status: a.status || 'published',
     });
     setDialogOpen(true);
   };
@@ -132,11 +133,12 @@ export default function KnowledgePage() {
     setSaving(true);
     try {
       const payload = {
-        title: form.title,
-        content: form.content,
+        title: form.title.trim(),
+        content: form.content.trim(),
         category: form.category,
         tags: form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
         status: form.status,
+        updated_at: new Date().toISOString(),
       };
       if (editing) {
         const { error } = await supabase.from('knowledge_base').update(payload).eq('id', editing.id);
@@ -157,7 +159,7 @@ export default function KnowledgePage() {
 
   const remove = async (a: Article) => {
     if (!confirm(`Delete "${a.title}"?`)) return;
-    const { error } = await supabase.from('knowledge_base').delete().eq('id', a.id);
+    const { error } = await supabase.from('knowledge_base').update({ deleted_at: new Date().toISOString() }).eq('id', a.id);
     if (error) { toast.error(error.message); return; }
     toast.success('Article deleted');
     load();

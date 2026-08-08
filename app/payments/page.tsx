@@ -100,7 +100,7 @@ export default function PaymentsPage() {
   const loadPayments = useCallback(async () => {
     setLoading(true);
     setError(null);
-    let query = supabase.from('payments').select('*').order('payment_date', { ascending: false });
+    let query = supabase.from('payments').select('*').is('deleted_at', null).order('payment_date', { ascending: false });
     if (methodFilter !== 'all') query = query.eq('method', methodFilter);
     const { data, error: err } = await query;
     if (err) setError(err.message);
@@ -113,8 +113,8 @@ export default function PaymentsPage() {
   }, [loadPayments]);
 
   useEffect(() => {
-    supabase.from('invoices').select('id, invoice_number, customer_name, total, status').order('created_at', { ascending: false }).then(({ data }) => { if (data) setInvoices(data); });
-    supabase.from('customers').select('id, name').then(({ data }) => { if (data) setCustomers(data); });
+    supabase.from('invoices').select('id, invoice_number, customer_name, total, status').is('deleted_at', null).order('created_at', { ascending: false }).then(({ data }) => { if (data) setInvoices(data); });
+    supabase.from('customers').select('id, name').is('deleted_at', null).then(({ data }) => { if (data) setCustomers(data); });
   }, []);
 
   const filtered = payments.filter((p) => {
@@ -172,7 +172,7 @@ export default function PaymentsPage() {
 
   const remove = async (p: Payment) => {
     if (!confirm('Delete this payment record?')) return;
-    const { error: err } = await supabase.from('payments').delete().eq('id', p.id);
+    const { error: err } = await supabase.from('payments').update({ deleted_at: new Date().toISOString() }).eq('id', p.id);
     if (err) toast.error(err.message);
     else { toast.success('Payment deleted'); loadPayments(); }
   };

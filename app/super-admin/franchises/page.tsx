@@ -106,8 +106,8 @@ export default function FranchisesPage() {
     setLoading(true);
 
     const [branchesRes, tenantsRes] = await Promise.all([
-      supabase.from('branches').select('*').order('created_at', { ascending: false }),
-      supabase.from('tenants').select('id, name'),
+      supabase.from('branches').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
+      supabase.from('tenants').select('id, name').is('deleted_at', null),
     ]);
 
     if (branchesRes.data) setBranches(branchesRes.data);
@@ -122,7 +122,9 @@ export default function FranchisesPage() {
 
   const filtered = branches.filter((b) => {
     const q = search.toLowerCase();
-    const matchesSearch = b.name.toLowerCase().includes(q) || b.code.toLowerCase().includes(q);
+    const matchesSearch = b.name.toLowerCase().includes(q) ||
+      b.code?.toLowerCase().includes(q) ||
+      b.city?.toLowerCase().includes(q);
     const matchesType = typeFilter === 'all' || b.branch_type === typeFilter;
     return matchesSearch && matchesType;
   });
@@ -131,36 +133,27 @@ export default function FranchisesPage() {
     total: branches.length,
     headquarters: branches.filter(b => b.branch_type === 'headquarters').length,
     franchises: branches.filter(b => b.branch_type === 'franchise').length,
-    branches: branches.filter(b => b.branch_type === 'branch').length,
+    branches: branches.filter(b => b.branch_type === 'branch' || b.branch_type === 'company_owned').length,
     active: branches.filter(b => b.is_active).length,
   };
 
   const save = async () => {
-    if (!form.name.trim() || !form.code.trim()) {
-      toast.error('Name and Code are required');
+    if (!form.name.trim()) {
+      toast.error('Branch name is required');
       return;
     }
 
     setSaving(true);
     try {
-      const payload = {
-        name: form.name,
-        code: form.code.toUpperCase(),
-        branch_type: form.branch_type,
-        city: form.city,
-        state: form.state,
-        phone: form.phone,
-        email: form.email,
-        whatsapp_number: form.whatsapp_number,
-        is_active: true,
-      };
-
       if (editing) {
-        const { error } = await supabase.from('branches').update(payload).eq('id', editing.id);
+        const { error } = await supabase
+          .from('branches')
+          .update(form)
+          .eq('id', editing.id);
         if (error) throw error;
         toast.success('Branch updated');
       } else {
-        const { error } = await supabase.from('branches').insert(payload);
+        const { error } = await supabase.from('branches').insert(form);
         if (error) throw error;
         toast.success('Branch created');
       }
@@ -191,7 +184,7 @@ export default function FranchisesPage() {
 
   const remove = async (id: string) => {
     if (!confirm('Delete this branch?')) return;
-    const { error } = await supabase.from('branches').delete().eq('id', id);
+    const { error } = await supabase.from('branches').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) {
       toast.error(error.message);
     } else {

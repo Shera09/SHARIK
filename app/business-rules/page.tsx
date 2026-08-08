@@ -118,6 +118,7 @@ export default function BusinessRulesPage() {
     const { data, error } = await supabase
       .from('business_rules')
       .select('*')
+      .is('deleted_at', null)
       .order('priority', { ascending: false });
     if (!error) setRules(data || []);
     setLoading(false);
@@ -135,26 +136,50 @@ export default function BusinessRulesPage() {
     executions: rules.reduce((sum, r) => sum + r.execution_count, 0),
   };
 
+  const openAdd = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (rule: BusinessRule) => {
+    setEditing(rule);
+    setForm({
+      name: rule.name,
+      description: rule.description || '',
+      condition_field: rule.condition?.field || 'estimated_value',
+      condition_operator: rule.condition?.operator || 'greater_than',
+      condition_value: String(rule.condition?.value ?? '50000'),
+      actions: (rule.actions as any) || [],
+      priority: rule.priority || 0,
+      trigger_events: rule.trigger_events || [],
+    });
+    setDialogOpen(true);
+  };
+
   const save = async () => {
-    if (!form.name.trim()) { toast.error('Name is required'); return; }
+    if (!form.name.trim()) { toast.error('Rule name is required'); return; }
     setSaving(true);
     try {
       const condition = {
         field: form.condition_field,
         operator: form.condition_operator,
-        value: Number(form.condition_value) || form.condition_value,
+        value: form.condition_value,
       };
       const payload = {
-        name: form.name,
-        description: form.description,
+        name: form.name.trim(),
+        description: form.description.trim() || null,
         condition,
         actions: form.actions,
-        priority: form.priority,
+        priority: Number(form.priority) || 0,
         trigger_events: form.trigger_events,
-        is_active: true,
+        is_active: editing ? editing.is_active : true,
       };
       if (editing) {
-        const { error } = await supabase.from('business_rules').update(payload).eq('id', editing.id);
+        const { error } = await supabase
+          .from('business_rules')
+          .update(payload)
+          .eq('id', editing.id);
         if (error) throw error;
         toast.success('Rule updated');
       } else {

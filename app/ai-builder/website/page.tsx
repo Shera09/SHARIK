@@ -105,9 +105,9 @@ export default function WebsiteBuilderPage() {
     setLoading(true);
 
     const [projectsRes, templatesRes, componentsRes] = await Promise.all([
-      supabase.from('builder_projects').select('*').eq('project_type', 'website').order('created_at', { ascending: false }).limit(20),
-      supabase.from('builder_templates').select('*').eq('project_type', 'website').eq('is_active', true).limit(12),
-      supabase.from('builder_components').select('*').eq('is_active', true).limit(20),
+      supabase.from('builder_projects').select('*').eq('project_type', 'website').is('deleted_at', null).order('created_at', { ascending: false }).limit(20),
+      supabase.from('builder_templates').select('*').eq('project_type', 'website').eq('is_active', true).is('deleted_at', null).limit(12),
+      supabase.from('builder_components').select('*').eq('is_active', true).is('deleted_at', null).limit(20),
     ]);
 
     if (projectsRes.data) setProjects(projectsRes.data);
@@ -164,7 +164,7 @@ export default function WebsiteBuilderPage() {
 
   const deleteProject = async (id: string) => {
     if (!confirm('Delete this website?')) return;
-    const { error } = await supabase.from('builder_projects').delete().eq('id', id);
+    const { error } = await supabase.from('builder_projects').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) toast.error(error.message);
     else {
       toast.success('Deleted');

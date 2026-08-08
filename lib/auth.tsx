@@ -4,6 +4,11 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import {
+  SupportedOAuthProvider,
+  OAUTH_PROVIDER_REGISTRY,
+  generateOAuthState,
+} from '@/lib/oauth-provider-manager';
 
 export type AuthProfile = {
   id: string;
@@ -52,7 +57,13 @@ export type AuthState = {
 export type AuthContextType = AuthState & {
   signIn: (email: string, password: string, remember?: boolean) => Promise<{ error: AuthError | null }>;
   signUp: (email: string, password: string, metadata?: Record<string, any>) => Promise<{ error: AuthError | null }>;
+  signInWithGoogle: () => Promise<{ error: AuthError | null }>;
+  signInWithMicrosoft: () => Promise<{ error: AuthError | null }>;
+  signInWithGitHub: () => Promise<{ error: AuthError | null }>;
+  signInWithLinkedIn: () => Promise<{ error: AuthError | null }>;
+  signInWithProvider: (provider: SupportedOAuthProvider) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
+  signOutAllDevices: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   updatePassword: (password: string) => Promise<{ error: AuthError | null }>;
   updateProfile: (updates: Partial<AuthProfile>) => Promise<{ error: Error | null }>;
@@ -99,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: { session }, error } = await supabase.auth.getSession();
 
       if (error) {
-        setState(prev => ({ ...prev, isLoading: false, error: error.message }));
+        setState((prev: AuthState) => ({ ...prev, isLoading: false, error: error.message }));
         return;
       }
 
@@ -119,10 +130,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           error: null,
         });
       } else {
-        setState(prev => ({ ...prev, isLoading: false }));
+        setState((prev: AuthState) => ({ ...prev, isLoading: false }));
       }
     } catch (error) {
-      setState(prev => ({
+      setState((prev: AuthState) => ({
         ...prev,
         isLoading: false,
         error: error instanceof Error ? error.message : 'Auth initialization failed'
@@ -133,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: Session | null) => {
       if (event === 'SIGNED_IN' && session?.user) {
         (async () => {
           const [profile, roles] = await Promise.all([
@@ -162,7 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         router.push('/login');
       } else if (event === 'TOKEN_REFRESHED') {
-        setState(prev => ({ ...prev, session }));
+        setState((prev: AuthState) => ({ ...prev, session }));
       }
     });
 
@@ -170,7 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [initializeAuth, fetchProfile, fetchRoles, router]);
 
   const signIn = async (email: string, password: string, _remember = false) => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState((prev: AuthState) => ({ ...prev, isLoading: true, error: null }));
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -178,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      setState(prev => ({
+      setState((prev: AuthState) => ({
         ...prev,
         isLoading: false,
         error: error.message === 'Invalid login credentials'
@@ -201,7 +212,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, metadata?: Record<string, any>) => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState((prev: AuthState) => ({ ...prev, isLoading: true, error: null }));
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -212,15 +223,89 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      setState(prev => ({ ...prev, isLoading: false, error: error.message }));
+      setState((prev: AuthState) => ({ ...prev, isLoading: false, error: error.message }));
       return { error };
     }
 
     return { error: null };
   };
 
+  const signInWithProvider = async (providerKey: SupportedOAuthProvider) => {
+    setState((prev: AuthState) => ({ ...prev, isLoading: true, error: null }));
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const stateNonce = generateOAuthState();
+
+    const providerConfig = OAUTH_PROVIDER_REGISTRY[providerKey];
+    if (!providerConfig) {
+      const err = new Error(`Unsupported OAuth provider: ${providerKey}`);
+      setState((prev: AuthState) => ({ ...prev, isLoading: false, error: err.message }));
+      return { error: err as unknown as AuthError };
+    }
+
+    try {
+      await supabase.from('security_events').insert({
+        event_type: 'oauth_started',
+        severity: 'info',
+        resource: `auth/${providerKey}`,
+        action: 'oauth_initiated',
+        details: { provider: providerKey, timestamp: new Date().toISOString() },
+      });
+    } catch {}
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: providerConfig.supabaseProvider,
+      options: {
+        redirectTo: `${origin}/auth/callback?provider=${providerKey}&state=${stateNonce}`,
+        scopes: providerConfig.scopes,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+
+    if (error) {
+      setState((prev: AuthState) => ({ ...prev, isLoading: false, error: error.message }));
+    }
+
+    return { error };
+  };
+
+  const signInWithGoogle = async () => signInWithProvider('google');
+  const signInWithMicrosoft = async () => signInWithProvider('azure');
+  const signInWithGitHub = async () => signInWithProvider('github');
+  const signInWithLinkedIn = async () => signInWithProvider('linkedin');
+
   const signOut = async () => {
     await supabase.auth.signOut();
+    setState({
+      user: null,
+      profile: null,
+      roles: [],
+      session: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+    });
+    router.push('/login');
+  };
+
+  const signOutAllDevices = async () => {
+    try {
+      if (state.user) {
+        await supabase.from('security_events').insert({
+          event_type: 'session_revoked',
+          severity: 'warning',
+          user_id: state.user.id,
+          user_email: state.user.email,
+          resource: 'auth/session',
+          action: 'sign_out_all_devices',
+          details: { timestamp: new Date().toISOString() },
+        });
+      }
+    } catch {}
+
+    await supabase.auth.signOut({ scope: 'global' });
     setState({
       user: null,
       profile: null,
@@ -256,7 +341,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq('id', state.user.id);
 
     if (!error) {
-      setState(prev => ({
+      setState((prev: AuthState) => ({
         ...prev,
         profile: prev.profile ? { ...prev.profile, ...updates } : null
       }));
@@ -268,20 +353,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshSession = async () => {
     const { data: { session } } = await supabase.auth.refreshSession();
     if (session) {
-      setState(prev => ({ ...prev, session }));
+      setState((prev: AuthState) => ({ ...prev, session }));
     }
   };
 
   const hasRole = (role: string): boolean => {
-    return state.roles.some(r => r.role === role);
+    return state.roles.some((r: UserRole) => r.role === role);
   };
 
   const hasPermission = (permission: string): boolean => {
-    return state.roles.some(r => r.permissions?.[permission] === true);
+    return state.roles.some((r: UserRole) => r.permissions?.[permission] === true);
   };
 
   const clearError = () => {
-    setState(prev => ({ ...prev, error: null }));
+    setState((prev: AuthState) => ({ ...prev, error: null }));
   };
 
   return (
@@ -290,7 +375,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...state,
         signIn,
         signUp,
+        signInWithGoogle,
+        signInWithMicrosoft,
+        signInWithGitHub,
+        signInWithLinkedIn,
+        signInWithProvider,
         signOut,
+        signOutAllDevices,
         resetPassword,
         updatePassword,
         updateProfile,

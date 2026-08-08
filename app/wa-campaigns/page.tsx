@@ -90,6 +90,7 @@ export default function WACampaignsPage() {
     const { data, error } = await supabase
       .from('whatsapp_campaigns')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
     if (!error) setCampaigns(data || []);
     setLoading(false);
@@ -113,17 +114,35 @@ export default function WACampaignsPage() {
     totalRead: campaigns.reduce((sum, c) => sum + c.read_count, 0),
   };
 
+  const openAdd = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (campaign: WACampaign) => {
+    setEditing(campaign);
+    setForm({
+      name: campaign.name,
+      message: campaign.message,
+      campaign_type: campaign.campaign_type || 'promotional',
+      scheduled_at: campaign.scheduled_at || '',
+      recipients: '',
+    });
+    setDialogOpen(true);
+  };
+
   const save = async () => {
-    if (!form.name.trim()) { toast.error('Name is required'); return; }
+    if (!form.name.trim()) { toast.error('Campaign name is required'); return; }
     if (!form.message.trim()) { toast.error('Message is required'); return; }
     setSaving(true);
     try {
       const payload = {
-        name: form.name,
-        message: form.message,
+        name: form.name.trim(),
+        message: form.message.trim(),
         campaign_type: form.campaign_type,
-        status: form.scheduled_at ? 'scheduled' : 'draft',
         scheduled_at: form.scheduled_at || null,
+        status: form.scheduled_at ? 'scheduled' : 'draft',
       };
       if (editing) {
         const { error } = await supabase.from('whatsapp_campaigns').update(payload).eq('id', editing.id);
@@ -143,8 +162,11 @@ export default function WACampaignsPage() {
   };
 
   const sendNow = async (campaign: WACampaign) => {
-    if (!confirm('Send campaign now?')) return;
-    const { error } = await supabase.from('whatsapp_campaigns').update({ status: 'sending' }).eq('id', campaign.id);
+    if (!confirm(`Send "${campaign.name}" now?`)) return;
+    const { error } = await supabase
+      .from('whatsapp_campaigns')
+      .update({ status: 'sending', sent_count: 1 })
+      .eq('id', campaign.id);
     if (error) toast.error(error.message);
     else {
       toast.success('Campaign sending started');
@@ -168,7 +190,7 @@ export default function WACampaignsPage() {
 
   const remove = async (id: string) => {
     if (!confirm('Delete this campaign?')) return;
-    const { error } = await supabase.from('whatsapp_campaigns').delete().eq('id', id);
+    const { error } = await supabase.from('whatsapp_campaigns').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) toast.error(error.message);
     else {
       toast.success('Deleted');

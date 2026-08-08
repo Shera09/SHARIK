@@ -79,14 +79,14 @@ export default function CreditNotesPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('credit_notes').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('credit_notes').select('*').is('deleted_at', null).order('created_at', { ascending: false });
     if (!error) setCreditNotes(data || []);
     setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
-    supabase.from('invoices').select('id, invoice_number, customer_name, total, customer_id').eq('status', 'paid').then(({ data }) => {
+    supabase.from('invoices').select('id, invoice_number, customer_name, total, customer_id').eq('status', 'paid').is('deleted_at', null).then(({ data }) => {
       if (data) setInvoices(data);
     });
   }, [load]);
@@ -136,7 +136,7 @@ export default function CreditNotesPage() {
 
   const remove = async (cn: CreditNote) => {
     if (!confirm(`Delete ${cn.credit_note_number}?`)) return;
-    const { error } = await supabase.from('credit_notes').delete().eq('id', cn.id);
+    const { error } = await supabase.from('credit_notes').update({ deleted_at: new Date().toISOString() }).eq('id', cn.id);
     if (error) toast.error(error.message);
     else { toast.success('Deleted'); load(); }
   };

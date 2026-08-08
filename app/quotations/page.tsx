@@ -123,7 +123,7 @@ export default function QuotationsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    let query = supabase.from('quotations').select('*').order('created_at', { ascending: false });
+    let query = supabase.from('quotations').select('*').is('deleted_at', null).order('created_at', { ascending: false });
     if (statusFilter !== 'all') query = query.eq('status', statusFilter);
     const { data, error } = await query;
     if (!error) setQuotations(data || []);
@@ -132,7 +132,7 @@ export default function QuotationsPage() {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    supabase.from('customers').select('id, name, company, email, phone, gst_number').then(({ data }) => {
+    supabase.from('customers').select('id, name, company, email, phone, gst_number').is('deleted_at', null).then(({ data }) => {
       if (data) setCustomers(data);
     });
   }, []);
@@ -276,7 +276,7 @@ export default function QuotationsPage() {
 
   const remove = async (q: Quotation) => {
     if (!confirm(`Delete ${q.quotation_number}?`)) return;
-    const { error } = await supabase.from('quotations').delete().eq('id', q.id);
+    const { error } = await supabase.from('quotations').update({ deleted_at: new Date().toISOString() }).eq('id', q.id);
     if (error) toast.error(error.message);
     else { toast.success('Deleted'); load(); }
   };

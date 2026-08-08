@@ -12,17 +12,11 @@ const display = Plus_Jakarta_Sans({
   variable: '--font-display',
 });
 
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 5,
+export const metadata: Metadata = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#0a0a0f' },
   ],
-};
-
-export const metadata: Metadata = {
   title: {
     default: 'WebHoster - AI-Powered Business Operating System for India',
     template: '%s | WebHoster',

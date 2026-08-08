@@ -126,6 +126,7 @@ export default function ReportBuilderPage() {
       .from('builder_projects')
       .select('*')
       .eq('project_type', 'report')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -181,7 +182,7 @@ export default function ReportBuilderPage() {
 
   const deleteProject = async (id: string) => {
     if (!confirm('Delete this report?')) return;
-    const { error } = await supabase.from('builder_projects').delete().eq('id', id);
+    const { error } = await supabase.from('builder_projects').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) toast.error(error.message);
     else {
       toast.success('Deleted');

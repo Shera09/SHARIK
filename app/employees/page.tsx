@@ -88,7 +88,7 @@ export default function EmployeesPage() {
   const loadEmployees = useCallback(async () => {
     setLoading(true);
     setError(null);
-    let query = supabase.from('employees').select('*').order('created_at', { ascending: false });
+    let query = supabase.from('employees').select('*').is('deleted_at', null).order('created_at', { ascending: false });
     if (deptFilter !== 'all') query = query.eq('department', deptFilter);
     const { data, error: err } = await query;
     if (err) setError(err.message);
@@ -135,7 +135,7 @@ export default function EmployeesPage() {
 
   const remove = async (e: Employee) => {
     if (!confirm(`Remove ${e.name}?`)) return;
-    const { error: err } = await supabase.from('employees').delete().eq('id', e.id);
+    const { error: err } = await supabase.from('employees').update({ deleted_at: new Date().toISOString() }).eq('id', e.id);
     if (err) toast.error(err.message);
     else { toast.success('Employee removed'); loadEmployees(); }
   };

@@ -7,7 +7,10 @@
     "build": "cross-env UV_THREADPOOL_SIZE=16 next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -73,6 +76,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "cross-env": "^10.1.0"
+    "@vitest/coverage-v8": "^2.1.9",
+    "cross-env": "^10.1.0",
+    "vitest": "^2.1.9"
   }
 }

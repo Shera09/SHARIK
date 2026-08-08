@@ -68,7 +68,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                 {section.items.map((item) => {
                   const isActive =
                     pathname === item.href ||
-                    (item.href !== '/' && pathname.startsWith(item.href));
+                    (item.href !== '/' && Boolean(pathname?.startsWith(item.href)));
                   const Icon = item.icon;
                   return (
                     <Link

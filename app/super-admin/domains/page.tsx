@@ -75,8 +75,8 @@ export default function DomainsPage() {
     setLoading(true);
 
     const [domainsRes, tenantsRes] = await Promise.all([
-      supabase.from('custom_domains').select('*').order('created_at', { ascending: false }),
-      supabase.from('tenants').select('id, name'),
+      supabase.from('custom_domains').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
+      supabase.from('tenants').select('id, name').is('deleted_at', null),
     ]);
 
     if (domainsRes.data) {
@@ -104,40 +104,36 @@ export default function DomainsPage() {
   };
 
   const addDomain = async () => {
-    if (!form.domain.trim()) {
-      toast.error('Domain is required');
-      return;
-    }
-
+    if (!form.domain.trim()) { toast.error('Domain is required'); return; }
     setSaving(true);
-    const { error } = await supabase.from('custom_domains').insert({
-      domain: form.domain.toLowerCase(),
-      tenant_id: form.tenant_id || null,
-      status: 'pending',
-      verification_token: 'wh_' + Math.random().toString(36).substring(7),
-    });
-
-    if (error) {
-      toast.error(error.message);
-    } else {
+    try {
+      const { error } = await supabase.from('custom_domains').insert({
+        domain: form.domain.toLowerCase().trim(),
+        tenant_id: form.tenant_id || null,
+        status: 'pending',
+      });
+      if (error) throw error;
       toast.success('Domain added');
       setDialogOpen(false);
       setForm({ domain: '', tenant_id: '' });
       loadData();
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to add domain');
     }
     setSaving(false);
   };
 
-  const verifyDomain = async (domain: Domain) => {
-    toast.info('Verification started...');
-    await new Promise(r => setTimeout(r, 2000));
-
-    const { error } = await supabase.from('custom_domains').update({
-      status: 'verified',
-      verified_at: new Date().toISOString(),
-      ssl_issued_at: new Date().toISOString(),
-      ssl_expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-    }).eq('id', domain.id);
+  const verifyDomain = async (target: Domain | string) => {
+    const id = typeof target === 'string' ? target : target.id;
+    const { error } = await supabase
+      .from('custom_domains')
+      .update({
+        status: 'verified',
+        verified_at: new Date().toISOString(),
+        ssl_issued_at: new Date().toISOString(),
+        ssl_expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      })
+      .eq('id', id);
 
     if (error) {
       toast.error(error.message);
@@ -149,7 +145,7 @@ export default function DomainsPage() {
 
   const removeDomain = async (id: string) => {
     if (!confirm('Delete this domain?')) return;
-    const { error } = await supabase.from('custom_domains').delete().eq('id', id);
+    const { error } = await supabase.from('custom_domains').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) {
       toast.error(error.message);
     } else {

@@ -107,8 +107,8 @@ export default function EmailCampaignsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     const [templatesRes, campaignsRes] = await Promise.all([
-      supabase.from('email_templates').select('*').order('name'),
-      supabase.from('email_campaigns').select('*').order('created_at', { ascending: false }),
+      supabase.from('email_templates').select('*').is('deleted_at', null).order('name'),
+      supabase.from('email_campaigns').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
     ]);
     if (templatesRes.data) setTemplates(templatesRes.data);
     if (campaignsRes.data) setCampaigns(campaignsRes.data);
@@ -139,31 +139,47 @@ export default function EmailCampaignsPage() {
     setDialogOpen(true);
   };
 
-  const applyTemplate = (templateId: string) => {
-    const template = templates.find((t) => t.id === templateId);
-    if (template) {
-      setForm({
-        ...form,
-        template_id: templateId,
-        subject: template.subject,
-        body: template.body,
-      });
-    }
+  const openEdit = (campaign: EmailCampaign) => {
+    setEditing(campaign);
+    setForm({
+      name: campaign.name,
+      subject: campaign.subject,
+      body: campaign.body,
+      campaign_type: campaign.campaign_type || 'promotional',
+      template_id: '',
+      scheduled_at: campaign.scheduled_at || '',
+      recipients: '',
+    });
+    setDialogOpen(true);
   };
 
+  const selectTemplate = (templateId: string) => {
+    const t = templates.find((t) => t.id === templateId);
+    if (t) {
+      setForm((prev) => ({
+        ...prev,
+        template_id: t.id,
+        subject: prev.subject || t.subject || '',
+        body: t.body || '',
+      }));
+    }
+  };
+  const applyTemplate = selectTemplate;
+
   const save = async () => {
-    if (!form.name.trim()) { toast.error('Name is required'); return; }
+    if (!form.name.trim()) { toast.error('Campaign name is required'); return; }
     if (!form.subject.trim()) { toast.error('Subject is required'); return; }
     if (!form.body.trim()) { toast.error('Body is required'); return; }
     setSaving(true);
     try {
       const payload = {
-        name: form.name,
-        subject: form.subject,
-        body: form.body,
+        name: form.name.trim(),
+        subject: form.subject.trim(),
+        body: form.body.trim(),
         campaign_type: form.campaign_type,
-        status: form.scheduled_at ? 'scheduled' : 'draft',
+        template_id: form.template_id || null,
         scheduled_at: form.scheduled_at || null,
+        status: form.scheduled_at ? 'scheduled' : 'draft',
       };
       if (editing) {
         const { error } = await supabase.from('email_campaigns').update(payload).eq('id', editing.id);
@@ -183,10 +199,10 @@ export default function EmailCampaignsPage() {
   };
 
   const sendNow = async (campaign: EmailCampaign) => {
-    if (!confirm('Send campaign now? This cannot be undone.')) return;
+    if (!confirm(`Send "${campaign.name}" now?`)) return;
     const { error } = await supabase
       .from('email_campaigns')
-      .update({ status: 'sending' })
+      .update({ status: 'sending', sent_count: 1 })
       .eq('id', campaign.id);
     if (error) toast.error(error.message);
     else {
@@ -212,7 +228,7 @@ export default function EmailCampaignsPage() {
 
   const remove = async (id: string) => {
     if (!confirm('Delete this campaign?')) return;
-    const { error } = await supabase.from('email_campaigns').delete().eq('id', id);
+    const { error } = await supabase.from('email_campaigns').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) toast.error(error.message);
     else {
       toast.success('Deleted');

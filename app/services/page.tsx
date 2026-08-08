@@ -84,7 +84,7 @@ export default function ServicesPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    let query = supabase.from('services').select('*').order('name');
+    let query = supabase.from('services').select('*').is('deleted_at', null).order('name');
     if (categoryFilter !== 'all') query = query.eq('category', categoryFilter);
     const { data, error } = await query;
     if (!error) setServices(data || []);
@@ -93,7 +93,7 @@ export default function ServicesPage() {
 
   useEffect(() => {
     load();
-    supabase.from('gst_slabs').select('*').then(({ data }) => {
+    supabase.from('gst_slabs').select('*').is('deleted_at', null).then(({ data }) => {
       if (data) setGstSlabs(data);
     });
   }, [load]);
@@ -152,7 +152,7 @@ export default function ServicesPage() {
 
   const remove = async (s: Service) => {
     if (!confirm(`Delete ${s.name}?`)) return;
-    const { error } = await supabase.from('services').delete().eq('id', s.id);
+    const { error } = await supabase.from('services').update({ deleted_at: new Date().toISOString() }).eq('id', s.id);
     if (error) toast.error(error.message);
     else { toast.success('Deleted'); load(); }
   };

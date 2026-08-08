@@ -36,7 +36,10 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { companySettingsSchema } from '@/lib/validations';
+import { useEffect, useCallback } from 'react';
 
 type SettingSection = {
   id: string;
@@ -59,6 +62,7 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const [activeSection, setActiveSection] = useState('company');
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [accentColor, setAccentColor] = useState('Teal');
 
   const [company, setCompany] = useState({
@@ -103,11 +107,46 @@ export default function SettingsPage() {
     whatsappAlerts: false,
   });
 
+  const loadSettings = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('organization_settings').select('*');
+    if (!error && data && data.length > 0) {
+      data.forEach((item) => {
+        if (item.setting_key === 'company' && item.setting_value) setCompany((prev) => ({ ...prev, ...item.setting_value }));
+        if (item.setting_key === 'regional' && item.setting_value) setRegional((prev) => ({ ...prev, ...item.setting_value }));
+        if (item.setting_key === 'billing' && item.setting_value) setBilling((prev) => ({ ...prev, ...item.setting_value }));
+        if (item.setting_key === 'notifications' && item.setting_value) setNotifPrefs((prev) => ({ ...prev, ...item.setting_value }));
+      });
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
   const save = async () => {
+    if (activeSection === 'company') {
+      const validation = companySettingsSchema.safeParse(company);
+      if (!validation.success) {
+        const firstError = validation.error.errors[0]?.message || 'Invalid company details';
+        toast.error(firstError);
+        return;
+      }
+    }
+
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 600));
+    try {
+      await supabase.from('organization_settings').upsert({ setting_key: 'company', setting_value: company as Record<string, any> }, { onConflict: 'organization_id,setting_key' });
+      await supabase.from('organization_settings').upsert({ setting_key: 'regional', setting_value: regional as Record<string, any> }, { onConflict: 'organization_id,setting_key' });
+      await supabase.from('organization_settings').upsert({ setting_key: 'billing', setting_value: billing as Record<string, any> }, { onConflict: 'organization_id,setting_key' });
+      await supabase.from('organization_settings').upsert({ setting_key: 'notifications', setting_value: notifPrefs as Record<string, any> }, { onConflict: 'organization_id,setting_key' });
+
+      toast.success('Settings saved to database');
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to save settings');
+    }
     setSaving(false);
-    toast.success('Settings saved');
   };
 
   const accentColors = [

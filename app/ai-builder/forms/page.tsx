@@ -48,7 +48,6 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 
 type FormBuilder = {
@@ -93,7 +92,6 @@ const examplePrompts = [
 ];
 
 export default function FormBuilderPage() {
-  const { user, isLoading: authLoading } = useAuth();
   const [forms, setForms] = useState<FormBuilder[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -108,16 +106,10 @@ export default function FormBuilderPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from('builder_forms').select('*').order('created_at', { ascending: false }).limit(20);
+    const { data } = await supabase.from('builder_forms').select('*').is('deleted_at', null).order('created_at', { ascending: false }).limit(20);
     if (data) setForms(data);
     setLoading(false);
   }, []);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      toast.error('Please sign in to manage forms');
-    }
-  }, [authLoading, user]);
 
   useEffect(() => {
     loadData();
@@ -156,11 +148,6 @@ export default function FormBuilderPage() {
       return;
     }
 
-    if (!user) {
-      toast.error('Please sign in to create forms');
-      return;
-    }
-
     setSaving(true);
     const slug = formName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
@@ -172,7 +159,8 @@ export default function FormBuilderPage() {
     });
 
     if (error) {
-      toast.error(error.message);
+      console.error('Supabase builder_forms insert error:', error.message || error);
+      toast.error(error.message || 'Failed to create form');
     } else {
       toast.success('Form created');
       setDialogOpen(false);
@@ -204,7 +192,7 @@ export default function FormBuilderPage() {
 
   const deleteForm = async (id: string) => {
     if (!confirm('Delete this form?')) return;
-    const { error } = await supabase.from('builder_forms').delete().eq('id', id);
+    const { error } = await supabase.from('builder_forms').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) toast.error(error.message);
     else {
       toast.success('Deleted');
@@ -247,8 +235,8 @@ export default function FormBuilderPage() {
         {[
           { label: 'Total Forms', value: forms.length, icon: FormInput, color: 'text-blue-500' },
           { label: 'Active', value: forms.filter(f => f.is_active).length, icon: CheckSquare, color: 'text-success' },
-          { label: 'Total Submissions', value: forms.reduce((sum, f) => sum + f.submissions_count, 0), icon: Mail, color: 'text-purple-500' },
-          { label: 'Avg Fields', value: forms.length > 0 ? Math.round(forms.reduce((sum, f) => sum + f.fields.length, 0) / forms.length) : 0, icon: List, color: 'text-orange-500' },
+          { label: 'Total Submissions', value: forms.reduce((sum, f) => sum + Number(f.submissions_count || 0), 0), icon: Mail, color: 'text-purple-500' },
+          { label: 'Avg Fields', value: forms.length > 0 ? Math.round(forms.reduce((sum, f) => sum + (f.fields?.length || 0), 0) / forms.length) : 0, icon: List, color: 'text-orange-500' },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}

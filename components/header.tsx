@@ -73,7 +73,7 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
   }, [isAuthenticated]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
-  const currentPage = pageNames[pathname] || 'Dashboard';
+  const currentPage = (pathname && pageNames[pathname]) || 'Dashboard';
 
   const markAllRead = async () => {
     await supabase.from('notifications').update({ read: true }).neq('read', true);

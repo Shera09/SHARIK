@@ -120,6 +120,7 @@ export default function MarketplacePage() {
       .from('builder_templates')
       .select('*')
       .eq('is_active', true)
+      .is('deleted_at', null)
       .order('downloads', { ascending: false })
       .limit(50);
 

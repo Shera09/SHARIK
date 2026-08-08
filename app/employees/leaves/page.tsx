@@ -130,8 +130,8 @@ export default function LeavesPage() {
     setError(null);
     try {
       const [empRes, leaveRes] = await Promise.all([
-        supabase.from('employees').select('id, name, department').order('name', { ascending: true }),
-        supabase.from('leaves').select('*').order('created_at', { ascending: false }),
+        supabase.from('employees').select('id, name, department').is('deleted_at', null).order('name', { ascending: true }),
+        supabase.from('leaves').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
       ]);
       if (empRes.error) throw empRes.error;
       if (leaveRes.error) throw leaveRes.error;
@@ -229,7 +229,7 @@ export default function LeavesPage() {
 
   const remove = async (l: Leave) => {
     if (!confirm('Delete this leave request?')) return;
-    const { error: err } = await supabase.from('leaves').delete().eq('id', l.id);
+    const { error: err } = await supabase.from('leaves').update({ deleted_at: new Date().toISOString() }).eq('id', l.id);
     if (err) toast.error(err.message);
     else { toast.success('Leave deleted'); load(); }
   };

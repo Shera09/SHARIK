@@ -97,8 +97,8 @@ export default function APIPlatformPage() {
     setLoading(true);
 
     const [keysRes, webhooksRes] = await Promise.all([
-      supabase.from('api_keys').select('*').order('created_at', { ascending: false }),
-      supabase.from('webhooks').select('*').order('created_at', { ascending: false }),
+      supabase.from('api_keys').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
+      supabase.from('webhooks').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
     ]);
 
     if (keysRes.data) setApiKeys(keysRes.data);
@@ -118,23 +118,20 @@ export default function APIPlatformPage() {
     loadData();
   }, [loadData]);
 
-  const generateApiKey = () => {
-    return 'wh_' + Array.from({ length: 32 }, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
-  };
-
-  const createKey = async () => {
+  const createApiKey = async () => {
     if (!keyForm.name.trim()) {
-      toast.error('Name is required');
+      toast.error('Key name is required');
       return;
     }
     setSaving(true);
-    const rawKey = generateApiKey();
-    const keyPrefix = rawKey.substring(0, 12);
+
+    const rawKey = `sharik_${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`;
+    const prefix = rawKey.substring(0, 12) + '...';
 
     const { error } = await supabase.from('api_keys').insert({
       name: keyForm.name,
-      key_prefix: keyPrefix,
-      key_hash: rawKey, // In production, this should be hashed
+      key_prefix: prefix,
+      key_hash: 'sha256_mock_hash',
       rate_limit: keyForm.rate_limit,
       status: 'active',
     });
@@ -148,6 +145,7 @@ export default function APIPlatformPage() {
     }
     setSaving(false);
   };
+  const createKey = createApiKey;
 
   const createWebhook = async () => {
     if (!webhookForm.name.trim() || !webhookForm.url.trim()) {
@@ -175,7 +173,7 @@ export default function APIPlatformPage() {
   };
 
   const deleteKey = async (id: string) => {
-    const { error } = await supabase.from('api_keys').delete().eq('id', id);
+    const { error } = await supabase.from('api_keys').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) {
       toast.error(error.message);
     } else {
@@ -185,7 +183,7 @@ export default function APIPlatformPage() {
   };
 
   const deleteWebhook = async (id: string) => {
-    const { error } = await supabase.from('webhooks').delete().eq('id', id);
+    const { error } = await supabase.from('webhooks').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) {
       toast.error(error.message);
     } else {

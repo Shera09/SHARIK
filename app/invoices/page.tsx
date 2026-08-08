@@ -45,6 +45,7 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { invoiceSchema } from '@/lib/validations';
 
 type LineItem = {
   description: string;
@@ -129,6 +130,7 @@ export default function InvoicesPage() {
     let query = supabase
       .from('invoices')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
     if (statusFilter !== 'all') query = query.eq('status', statusFilter);
     const { data, error: err } = await query;
@@ -142,7 +144,7 @@ export default function InvoicesPage() {
   }, [loadInvoices]);
 
   useEffect(() => {
-    supabase.from('customers').select('id, name, company, email, phone, gst_number, address, city, state').then(({ data }) => {
+    supabase.from('customers').select('id, name, company, email, phone, gst_number, address, city, state').is('deleted_at', null).then(({ data }) => {
       if (data) setCustomers(data);
     });
   }, []);
@@ -217,39 +219,42 @@ export default function InvoicesPage() {
   };
 
   const save = async () => {
-    if (!form.customer_name.trim()) {
-      toast.error('Customer is required');
+    const invoice_number = editing
+      ? editing.invoice_number
+      : `INV-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(3, '0')}`;
+    const payload = {
+      invoice_number,
+      customer_id: form.customer_id || null,
+      customer_name: form.customer_name,
+      customer_email: form.customer_email || null,
+      customer_phone: form.customer_phone || null,
+      customer_gst: form.customer_gst || null,
+      billing_address: form.billing_address || null,
+      issue_date: form.issue_date,
+      due_date: form.due_date || null,
+      line_items: form.line_items.filter((i) => i.description.trim()),
+      subtotal: totals.subtotal,
+      gst_rate: form.gst_rate,
+      gst_amount: totals.gst_amount,
+      total: totals.total,
+      notes: form.notes || null,
+      status: (editing ? editing.status : 'draft') as any,
+    };
+
+    const validation = invoiceSchema.safeParse(payload);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0]?.message || 'Invalid invoice data';
+      toast.error(firstError);
       return;
     }
-    if (form.line_items.length === 0 || form.line_items.every((i) => !i.description.trim())) {
-      toast.error('Add at least one line item');
-      return;
-    }
+
     setSaving(true);
     try {
-      const invoice_number = editing
-        ? editing.invoice_number
-        : `INV-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(3, '0')}`;
-      const payload = {
-        invoice_number,
-        customer_id: form.customer_id || null,
-        customer_name: form.customer_name,
-        customer_email: form.customer_email || null,
-        customer_phone: form.customer_phone || null,
-        customer_gst: form.customer_gst || null,
-        billing_address: form.billing_address || null,
-        issue_date: form.issue_date,
-        due_date: form.due_date || null,
-        line_items: form.line_items.filter((i) => i.description.trim()),
-        subtotal: totals.subtotal,
-        gst_rate: form.gst_rate,
-        gst_amount: totals.gst_amount,
-        total: totals.total,
-        notes: form.notes || null,
-        status: editing ? editing.status : 'draft',
-      };
       if (editing) {
-        const { error: err } = await supabase.from('invoices').update(payload).eq('id', editing.id);
+        const { error: err } = await supabase
+          .from('invoices')
+          .update(payload)
+          .eq('id', editing.id);
         if (err) throw err;
         toast.success('Invoice updated');
       } else {
@@ -267,7 +272,10 @@ export default function InvoicesPage() {
 
   const remove = async (inv: Invoice) => {
     if (!confirm(`Delete invoice ${inv.invoice_number}?`)) return;
-    const { error: err } = await supabase.from('invoices').delete().eq('id', inv.id);
+    const { error: err } = await supabase
+      .from('invoices')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', inv.id);
     if (err) toast.error(err.message);
     else {
       toast.success('Invoice deleted');

@@ -85,7 +85,10 @@ export default function AIBuilderPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from('builder_projects').select('*').order('created_at', { ascending: false }).limit(20);
+    const { data, error } = await supabase.from('builder_projects').select('*').is('deleted_at', null).order('created_at', { ascending: false }).limit(20);
+    if (error) {
+      console.error('Supabase builder_projects load error:', error.message || error);
+    }
     if (data) setProjects(data);
     setLoading(false);
   }, []);
@@ -125,7 +128,8 @@ export default function AIBuilderPage() {
     }).select().single();
 
     if (error) {
-      toast.error(error.message);
+      console.error('Supabase builder_projects insert error:', error.message || error);
+      toast.error(error.message || 'Insert Failed');
     } else if (data) {
       toast.success('Project generated!');
       setProjects([data as Project, ...projects]);
@@ -137,7 +141,7 @@ export default function AIBuilderPage() {
 
   const deleteProject = async (id: string) => {
     if (!confirm('Delete this project?')) return;
-    const { error } = await supabase.from('builder_projects').delete().eq('id', id);
+    const { error } = await supabase.from('builder_projects').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) toast.error(error.message);
     else {
       toast.success('Deleted');

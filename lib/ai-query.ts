@@ -10,6 +10,66 @@ export type AIResult = {
   sources: string[];
 };
 
+interface LeadRecord {
+  name: string;
+  company?: string;
+  status: string;
+  value?: number | string;
+  probability?: number;
+  follow_up_date?: string;
+  assigned_to?: string;
+}
+
+interface InvoiceRecord {
+  invoice_number: string;
+  customer_name: string;
+  total: number | string;
+  due_date?: string;
+  status: string;
+}
+
+interface PaymentRecord {
+  amount: number | string;
+  payment_date: string;
+  method?: string;
+  status: string;
+}
+
+interface CustomerRecord {
+  name: string;
+  company?: string;
+  status?: string;
+  total_revenue?: number | string;
+  city?: string;
+  state?: string;
+  created_at?: string;
+}
+
+interface TaskRecord {
+  title: string;
+  assignee?: string;
+  priority: string;
+  status: string;
+  due_date?: string;
+}
+
+interface EmployeeRecord {
+  name: string;
+  role?: string;
+  department?: string;
+  status: string;
+  salary?: number | string;
+  hire_date?: string;
+}
+
+interface ExpenseRecord {
+  category?: string;
+  amount: number | string;
+  vendor?: string;
+  status: string;
+  expense_date?: string;
+}
+
 type Intent =
   | 'pipeline'
   | 'overdue_invoices'
@@ -87,10 +147,10 @@ async function handlePipeline(question: string): Promise<AIResult> {
     };
   }
 
-  const open = leads.filter((l) => l.status !== 'won' && l.status !== 'lost');
-  const pipelineValue = open.reduce((s, l) => s + Number(l.value || 0), 0);
-  const won = leads.filter((l) => l.status === 'won');
-  const wonValue = won.reduce((s, l) => s + Number(l.value || 0), 0);
+  const open = leads.filter((l: LeadRecord) => l.status !== 'won' && l.status !== 'lost');
+  const pipelineValue = open.reduce((s: number, l: LeadRecord) => s + Number(l.value || 0), 0);
+  const won = leads.filter((l: LeadRecord) => l.status === 'won');
+  const wonValue = won.reduce((s: number, l: LeadRecord) => s + Number(l.value || 0), 0);
 
   const byStatus: Record<string, number> = {};
   for (const l of open) byStatus[l.status] = (byStatus[l.status] || 0) + 1;
@@ -108,13 +168,13 @@ async function handlePipeline(question: string): Promise<AIResult> {
   if (needsFollowUp) {
     const today = new Date().toISOString().slice(0, 10);
     const overdueFollowUps = open
-      .filter((l) => l.follow_up_date && l.follow_up_date < today)
-      .sort((a, b) => (a.follow_up_date! < b.follow_up_date! ? -1 : 1));
+      .filter((l: LeadRecord) => l.follow_up_date && l.follow_up_date < today)
+      .sort((a: LeadRecord, b: LeadRecord) => (a.follow_up_date! < b.follow_up_date! ? -1 : 1));
     if (overdueFollowUps.length > 0) {
       blocks.push({
         kind: 'data',
         title: `Leads with overdue follow-ups (${overdueFollowUps.length})`,
-        lines: overdueFollowUps.slice(0, 5).map((l) => `• ${l.name}${l.company ? ` — ${l.company}` : ''} | follow-up was ${l.follow_up_date} | ${inr(Number(l.value || 0))}`),
+        lines: overdueFollowUps.slice(0, 5).map((l: LeadRecord) => `• ${l.name}${l.company ? ` — ${l.company}` : ''} | follow-up was ${l.follow_up_date} | ${inr(Number(l.value || 0))}`),
       });
       blocks.push({
         kind: 'recommendation',
@@ -148,9 +208,9 @@ async function handleOverdueInvoices(): Promise<AIResult> {
     };
   }
 
-  const overdue = invoices.filter((i) => i.due_date && i.due_date < today);
-  const outstanding = invoices.reduce((s, i) => s + Number(i.total || 0), 0);
-  const overdueTotal = overdue.reduce((s, i) => s + Number(i.total || 0), 0);
+  const overdue = invoices.filter((i: InvoiceRecord) => i.due_date && i.due_date < today);
+  const outstanding = invoices.reduce((s: number, i: InvoiceRecord) => s + Number(i.total || 0), 0);
+  const overdueTotal = overdue.reduce((s: number, i: InvoiceRecord) => s + Number(i.total || 0), 0);
 
   const blocks: ResponseBlock[] = [
     {
@@ -169,7 +229,7 @@ async function handleOverdueInvoices(): Promise<AIResult> {
     blocks.push({
       kind: 'data',
       title: `Overdue invoices (${Math.min(overdue.length, 5)} shown)`,
-      lines: overdue.slice(0, 5).map((i) => `• ${i.invoice_number} — ${i.customer_name} | due ${i.due_date} | ${inr(Number(i.total))}`),
+      lines: overdue.slice(0, 5).map((i: InvoiceRecord) => `• ${i.invoice_number} — ${i.customer_name} | due ${i.due_date} | ${inr(Number(i.total))}`),
     });
     blocks.push({
       kind: 'recommendation',
@@ -206,13 +266,13 @@ async function handleRevenue(question: string): Promise<AIResult> {
   const startOfQuarter = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const totalRevenue = payments.reduce((s, p) => s + Number(p.amount || 0), 0);
+  const totalRevenue = payments.reduce((s: number, p: PaymentRecord) => s + Number(p.amount || 0), 0);
   const quarterRevenue = payments
-    .filter((p) => new Date(p.payment_date) >= startOfQuarter)
-    .reduce((s, p) => s + Number(p.amount || 0), 0);
+    .filter((p: PaymentRecord) => new Date(p.payment_date) >= startOfQuarter)
+    .reduce((s: number, p: PaymentRecord) => s + Number(p.amount || 0), 0);
   const monthRevenue = payments
-    .filter((p) => new Date(p.payment_date) >= startOfMonth)
-    .reduce((s, p) => s + Number(p.amount || 0), 0);
+    .filter((p: PaymentRecord) => new Date(p.payment_date) >= startOfMonth)
+    .reduce((s: number, p: PaymentRecord) => s + Number(p.amount || 0), 0);
 
   const byMethod: Record<string, number> = {};
   for (const p of payments) byMethod[p.method || 'unknown'] = (byMethod[p.method || 'unknown'] || 0) + Number(p.amount || 0);
@@ -262,7 +322,7 @@ async function handleCustomers(): Promise<AIResult> {
   }
 
   const topCustomers = customers.slice(0, 5);
-  const inactive = customers.filter((c) => c.status === 'inactive' || c.status === 'churned');
+  const inactive = customers.filter((c: CustomerRecord) => c.status === 'inactive' || c.status === 'churned');
 
   const blocks: ResponseBlock[] = [
     {
@@ -276,7 +336,7 @@ async function handleCustomers(): Promise<AIResult> {
     {
       kind: 'data',
       title: 'Top customers by revenue',
-      lines: topCustomers.map((c) => `• ${c.name}${c.company ? ` — ${c.company}` : ''} | ${inr(Number(c.total_revenue || 0))}`),
+      lines: topCustomers.map((c: CustomerRecord) => `• ${c.name}${c.company ? ` — ${c.company}` : ''} | ${inr(Number(c.total_revenue || 0))}`),
     },
   ];
 
@@ -307,8 +367,8 @@ async function handleTasks(): Promise<AIResult> {
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  const overdue = tasks.filter((t) => t.due_date && t.due_date < today);
-  const highPriority = tasks.filter((t) => t.priority === 'high' || t.priority === 'urgent');
+  const overdue = tasks.filter((t: TaskRecord) => t.due_date && t.due_date < today);
+  const highPriority = tasks.filter((t: TaskRecord) => t.priority === 'high' || t.priority === 'urgent');
   const byStatus: Record<string, number> = {};
   for (const t of tasks) byStatus[t.status] = (byStatus[t.status] || 0) + 1;
 
@@ -329,7 +389,7 @@ async function handleTasks(): Promise<AIResult> {
     blocks.push({
       kind: 'data',
       title: 'Overdue tasks (next 5)',
-      lines: overdue.slice(0, 5).map((t) => `• ${t.title} | assigned to ${t.assignee || 'unassigned'} | due ${t.due_date} | ${t.priority}`),
+      lines: overdue.slice(0, 5).map((t: TaskRecord) => `• ${t.title} | assigned to ${t.assignee || 'unassigned'} | due ${t.due_date} | ${t.priority}`),
     });
   }
 
@@ -354,11 +414,11 @@ async function handleEmployees(): Promise<AIResult> {
     };
   }
 
-  const active = employees.filter((e) => e.status === 'active');
-  const onLeave = employees.filter((e) => e.status === 'on_leave' || e.status === 'on-leave');
+  const active = employees.filter((e: EmployeeRecord) => e.status === 'active');
+  const onLeave = employees.filter((e: EmployeeRecord) => e.status === 'on_leave' || e.status === 'on-leave');
   const byDept: Record<string, number> = {};
   for (const e of active) byDept[e.department || 'unassigned'] = (byDept[e.department || 'unassigned'] || 0) + 1;
-  const payroll = active.reduce((s, e) => s + Number(e.salary || 0), 0);
+  const payroll = active.reduce((s: number, e: EmployeeRecord) => s + Number(e.salary || 0), 0);
 
   return {
     blocks: [
@@ -394,10 +454,10 @@ async function handleExpenses(): Promise<AIResult> {
     };
   }
 
-  const total = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+  const total = expenses.reduce((s: number, e: ExpenseRecord) => s + Number(e.amount || 0), 0);
   const monthExpenses = expenses
-    .filter((e) => e.expense_date && new Date(e.expense_date) >= startOfMonth)
-    .reduce((s, e) => s + Number(e.amount || 0), 0);
+    .filter((e: ExpenseRecord) => e.expense_date && new Date(e.expense_date) >= startOfMonth)
+    .reduce((s: number, e: ExpenseRecord) => s + Number(e.amount || 0), 0);
   const byCategory: Record<string, number> = {};
   for (const e of expenses) byCategory[e.category || 'uncategorized'] = (byCategory[e.category || 'uncategorized'] || 0) + Number(e.amount || 0);
 

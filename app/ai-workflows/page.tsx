@@ -114,7 +114,7 @@ export default function AIWorkflowsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     const [wfRes, execRes] = await Promise.all([
-      supabase.from('ai_workflows').select('*').order('created_at', { ascending: false }),
+      supabase.from('ai_workflows').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
       supabase.from('ai_workflow_executions').select('*').order('started_at', { ascending: false }).limit(10),
     ]);
     setWorkflows(wfRes.data || []);
@@ -125,47 +125,43 @@ export default function AIWorkflowsPage() {
   useEffect(() => { load(); }, [load]);
 
   const addStep = () => {
-    setForm((f) => ({
-      ...f,
-      steps: [...f.steps, { ...emptyStep, id: crypto.randomUUID() }],
+    setForm((prev) => ({
+      ...prev,
+      steps: [...prev.steps, { ...emptyStep, id: crypto.randomUUID() }],
     }));
   };
 
   const removeStep = (idx: number) => {
-    setForm((f) => ({
-      ...f,
-      steps: f.steps.filter((_, i) => i !== idx),
+    setForm((prev) => ({
+      ...prev,
+      steps: prev.steps.filter((_, i) => i !== idx),
     }));
   };
 
-  const updateStep = (idx: number, field: keyof WorkflowStep, value: any) => {
-    setForm((f) => {
-      const steps = [...f.steps];
-      steps[idx] = { ...steps[idx], [field]: value };
-      return { ...f, steps };
+  const updateStep = (idx: number, field: keyof WorkflowStep, val: any) => {
+    setForm((prev) => {
+      const steps = [...prev.steps];
+      steps[idx] = { ...steps[idx], [field]: val };
+      return { ...prev, steps };
     });
   };
 
-  const save = async () => {
-    if (!form.name.trim()) { toast.error('Name is required'); return; }
+  const saveWorkflow = async () => {
+    if (!form.name.trim()) { toast.error('Workflow name is required'); return; }
     setSaving(true);
     try {
       const { error } = await supabase.from('ai_workflows').insert({
-        name: form.name,
+        name: form.name.trim(),
         trigger_event: form.trigger_event,
         description: form.description || null,
         steps: form.steps,
         active: true,
+        execution_count: 0,
       });
       if (error) throw error;
-      toast.success('Workflow created');
+      toast.success('AI Workflow created');
       setDialogOpen(false);
-      setForm({
-        name: '',
-        trigger_event: 'manual',
-        description: '',
-        steps: [{ ...emptyStep, id: crypto.randomUUID() }],
-      });
+      setForm({ name: '', trigger_event: 'manual', description: '', steps: [{ ...emptyStep, id: crypto.randomUUID() }] });
       load();
     } catch (e: any) {
       toast.error(e.message || 'Failed to save');
@@ -173,7 +169,7 @@ export default function AIWorkflowsPage() {
     setSaving(false);
   };
 
-  const toggleWorkflow = async (wf: Workflow) => {
+  const toggleActive = async (wf: Workflow) => {
     const { error } = await supabase
       .from('ai_workflows')
       .update({ active: !wf.active })
@@ -184,6 +180,7 @@ export default function AIWorkflowsPage() {
       load();
     }
   };
+  const toggleWorkflow = toggleActive;
 
   const triggerWorkflow = async (wf: Workflow) => {
     const { error } = await supabase.from('ai_workflow_executions').insert({
@@ -204,7 +201,7 @@ export default function AIWorkflowsPage() {
 
   const deleteWorkflow = async (wf: Workflow) => {
     if (!confirm(`Delete "${wf.name}"?`)) return;
-    const { error } = await supabase.from('ai_workflows').delete().eq('id', wf.id);
+    const { error } = await supabase.from('ai_workflows').update({ deleted_at: new Date().toISOString() }).eq('id', wf.id);
     if (error) toast.error(error.message);
     else { toast.success('Deleted'); load(); }
   };
@@ -518,7 +515,7 @@ export default function AIWorkflowsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={save} disabled={saving}>{saving ? 'Creating...' : 'Create'}</Button>
+            <Button onClick={saveWorkflow} disabled={saving}>{saving ? 'Creating...' : 'Create'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

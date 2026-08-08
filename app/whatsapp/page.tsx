@@ -105,6 +105,7 @@ export default function WhatsAppPage() {
     const { data, error } = await supabase
       .from('whatsapp_messages')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
     if (!error) setMessages(data || []);
     setLoading(false);
@@ -141,7 +142,6 @@ export default function WhatsAppPage() {
         message: form.message,
         direction: 'outbound',
         status: 'sent',
-        message_type: 'text',
       });
       if (error) throw error;
       toast.success('Message sent');
@@ -157,7 +157,7 @@ export default function WhatsAppPage() {
 
   const remove = async (id: string) => {
     if (!confirm('Delete this message?')) return;
-    const { error } = await supabase.from('whatsapp_messages').delete().eq('id', id);
+    const { error } = await supabase.from('whatsapp_messages').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) { toast.error(error.message); return; }
     toast.success('Deleted');
     load();

@@ -127,7 +127,7 @@ export default function TransactionsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     // Fetch accounts for the lookup map
-    const { data: accData } = await supabase.from('accounts').select('id, code, name, account_type').order('code');
+    const { data: accData } = await supabase.from('accounts').select('id, code, name, account_type').is('deleted_at', null).order('code');
     const accList = accData || [];
     setAccounts(accList);
     const map: Record<string, Account> = {};
@@ -135,7 +135,7 @@ export default function TransactionsPage() {
     setAccountMap(map);
 
     // Fetch transactions with date filtering
-    let query = supabase.from('transactions').select('*').order('transaction_date', { ascending: false }).order('created_at', { ascending: false });
+    let query = supabase.from('transactions').select('*').is('deleted_at', null).order('transaction_date', { ascending: false }).order('created_at', { ascending: false });
     if (dateFrom) query = query.gte('transaction_date', dateFrom);
     if (dateTo) query = query.lte('transaction_date', dateTo);
     if (typeFilter !== 'all') query = query.eq('transaction_type', typeFilter);
@@ -153,29 +153,26 @@ export default function TransactionsPage() {
     return (
       (t.description || '').toLowerCase().includes(q) ||
       (t.reference || '').toLowerCase().includes(q) ||
-      t.transaction_number.toLowerCase().includes(q) ||
-      (acc?.name || '').toLowerCase().includes(q) ||
-      (typeLabels[t.transaction_type] || '').toLowerCase().includes(q)
+      (acc ? `${acc.code} ${acc.name}`.toLowerCase() : '').includes(q)
     );
   });
 
   const openAdd = () => {
-    setForm({ ...emptyForm, account_id: accounts[0]?.id || '' });
+    setForm(emptyForm);
     setDialogOpen(true);
   };
 
   const save = async () => {
-    if (!form.account_id) { toast.error('Please select an account'); return; }
-    if (!form.amount || form.amount <= 0) { toast.error('Amount must be greater than 0'); return; }
+    if (!form.amount || form.amount <= 0) { toast.error('Amount must be greater than zero'); return; }
     setSaving(true);
     try {
       const payload = {
-        account_id: form.account_id,
+        account_id: form.account_id || null,
         transaction_type: form.transaction_type,
         amount: Number(form.amount),
-        description: form.description || null,
         transaction_date: form.transaction_date,
         reference: form.reference || null,
+        description: form.description || null,
         status: form.status,
       };
       const { error } = await supabase.from('transactions').insert(payload);
@@ -191,7 +188,7 @@ export default function TransactionsPage() {
 
   const remove = async (t: Transaction) => {
     if (!confirm('Delete this transaction?')) return;
-    const { error } = await supabase.from('transactions').delete().eq('id', t.id);
+    const { error } = await supabase.from('transactions').update({ deleted_at: new Date().toISOString() }).eq('id', t.id);
     if (error) toast.error(error.message);
     else { toast.success('Transaction deleted'); load(); }
   };

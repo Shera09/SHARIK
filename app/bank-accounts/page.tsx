@@ -85,7 +85,7 @@ export default function BankAccountsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('bank_accounts').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('bank_accounts').select('*').is('deleted_at', null).order('created_at', { ascending: false });
     if (!error) setAccounts(data || []);
     setLoading(false);
   }, []);
@@ -137,7 +137,7 @@ export default function BankAccountsPage() {
 
   const remove = async (a: BankAccount) => {
     if (!confirm(`Delete ${a.bank_name} account?`)) return;
-    const { error } = await supabase.from('bank_accounts').delete().eq('id', a.id);
+    const { error } = await supabase.from('bank_accounts').update({ deleted_at: new Date().toISOString() }).eq('id', a.id);
     if (error) toast.error(error.message);
     else { toast.success('Deleted'); load(); }
   };

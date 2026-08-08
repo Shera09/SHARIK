@@ -100,7 +100,7 @@ export default function JournalPage() {
   const load = useCallback(async () => {
     setLoading(true);
     // Fetch accounts for the lookup map
-    const { data: accData } = await supabase.from('accounts').select('id, code, name, account_type').order('code');
+    const { data: accData } = await supabase.from('accounts').select('id, code, name, account_type').is('deleted_at', null).order('code');
     const accList = accData || [];
     setAccounts(accList);
     const map: Record<string, Account> = {};
@@ -108,7 +108,7 @@ export default function JournalPage() {
     setAccountMap(map);
 
     // Fetch journal entries with filtering
-    let query = supabase.from('journal_entries').select('*').order('entry_date', { ascending: false }).order('created_at', { ascending: false });
+    let query = supabase.from('journal_entries').select('*').is('deleted_at', null).order('entry_date', { ascending: false }).order('created_at', { ascending: false });
     if (dateFrom) query = query.gte('entry_date', dateFrom);
     if (dateTo) query = query.lte('entry_date', dateTo);
     if (statusFilter !== 'all') query = query.eq('status', statusFilter);
@@ -123,25 +123,27 @@ export default function JournalPage() {
   const filtered = entries.filter((e) => {
     const q = search.toLowerCase();
     const acc = accountMap[e.account_id];
+    const accName = acc ? `${acc.code} ${acc.name}`.toLowerCase() : '';
     return (
+      (e.entry_number || '').toLowerCase().includes(q) ||
       (e.description || '').toLowerCase().includes(q) ||
-      e.entry_number.toLowerCase().includes(q) ||
-      (acc?.name || '').toLowerCase().includes(q) ||
-      (acc?.code || '').toLowerCase().includes(q)
+      accName.includes(q)
     );
   });
 
   const openAdd = () => {
-    setForm({ ...emptyForm, account_id: accounts[0]?.id || '' });
+    setForm(emptyForm);
     setDialogOpen(true);
   };
 
   const save = async () => {
-    if (!form.account_id) { toast.error('Please select an account'); return; }
-    if (!form.amount || form.amount <= 0) { toast.error('Amount must be greater than 0'); return; }
+    if (!form.account_id) { toast.error('Account is required'); return; }
+    if (!form.amount || form.amount <= 0) { toast.error('Amount must be greater than zero'); return; }
     setSaving(true);
     try {
+      const entry_number = `JE-${new Date().getFullYear()}-${String(entries.length + 1).padStart(4, '0')}`;
       const payload = {
+        entry_number,
         account_id: form.account_id,
         entry_date: form.entry_date,
         debit_amount: form.entry_side === 'debit' ? Number(form.amount) : 0,
@@ -162,7 +164,7 @@ export default function JournalPage() {
 
   const remove = async (e: JournalEntry) => {
     if (!confirm('Delete this journal entry?')) return;
-    const { error } = await supabase.from('journal_entries').delete().eq('id', e.id);
+    const { error } = await supabase.from('journal_entries').update({ deleted_at: new Date().toISOString() }).eq('id', e.id);
     if (error) toast.error(error.message);
     else { toast.success('Journal entry deleted'); load(); }
   };

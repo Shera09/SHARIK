@@ -45,6 +45,7 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { leadSchema } from '@/lib/validations';
 
 type Lead = {
   id: string;
@@ -112,6 +113,7 @@ export default function LeadsPage() {
     const { data, error: err } = await supabase
       .from('leads')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
     if (err) {
       setError(err.message);
@@ -159,18 +161,22 @@ export default function LeadsPage() {
   };
 
   const save = async () => {
-    if (!form.name.trim()) {
-      toast.error('Name is required');
+    const payload = {
+      ...form,
+      value: Number(form.value),
+      probability: Number(form.probability),
+      follow_up_date: form.follow_up_date || null,
+    };
+
+    const validation = leadSchema.safeParse(payload);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0]?.message || 'Invalid form data';
+      toast.error(firstError);
       return;
     }
+
     setSaving(true);
     try {
-      const payload = {
-        ...form,
-        value: Number(form.value),
-        probability: Number(form.probability),
-        follow_up_date: form.follow_up_date || null,
-      };
       if (editing) {
         const { error: err } = await supabase
           .from('leads')
@@ -212,7 +218,10 @@ export default function LeadsPage() {
 
   const remove = async (l: Lead) => {
     if (!confirm(`Delete lead ${l.name}?`)) return;
-    const { error: err } = await supabase.from('leads').delete().eq('id', l.id);
+    const { error: err } = await supabase
+      .from('leads')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', l.id);
     if (err) {
       toast.error(err.message);
     } else {

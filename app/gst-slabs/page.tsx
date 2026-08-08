@@ -40,7 +40,7 @@ export default function GstSlabsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('gst_slabs').select('*').order('rate');
+    const { data, error } = await supabase.from('gst_slabs').select('*').is('deleted_at', null).order('rate');
     if (!error) setSlabs(data || []);
     setLoading(false);
   }, []);
@@ -83,7 +83,7 @@ export default function GstSlabsPage() {
 
   const remove = async (s: GstSlab) => {
     if (!confirm(`Delete ${s.name}?`)) return;
-    const { error } = await supabase.from('gst_slabs').delete().eq('id', s.id);
+    const { error } = await supabase.from('gst_slabs').update({ deleted_at: new Date().toISOString() }).eq('id', s.id);
     if (error) toast.error(error.message);
     else { toast.success('Deleted'); load(); }
   };

@@ -100,7 +100,7 @@ export default function AppointmentsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    let query = supabase.from('appointments').select('*').order('scheduled_start', { ascending: true });
+    let query = supabase.from('appointments').select('*').is('deleted_at', null).order('scheduled_start', { ascending: true });
     if (statusFilter !== 'all') query = query.eq('status', statusFilter);
     const { data, error } = await query;
     if (!error) setAppointments(data || []);
@@ -113,6 +113,31 @@ export default function AppointmentsPage() {
     const q = search.toLowerCase();
     return a.title.toLowerCase().includes(q) || a.customer_name?.toLowerCase().includes(q);
   });
+
+  const openAdd = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (app: Appointment) => {
+    setEditing(app);
+    setForm({
+      title: app.title,
+      customer_name: app.customer_name || '',
+      customer_email: app.customer_email || '',
+      customer_phone: app.customer_phone || '',
+      scheduled_start: app.scheduled_start,
+      scheduled_end: app.scheduled_end || '',
+      location_type: app.location_type || 'in_person',
+      location_url: app.location_url || '',
+      location_address: app.location_address || '',
+      notes: app.notes || '',
+      description: app.description || '',
+      appointment_type: app.appointment_type || 'meeting',
+    });
+    setDialogOpen(true);
+  };
 
   const stats = {
     total: appointments.length,
@@ -131,19 +156,19 @@ export default function AppointmentsPage() {
     setSaving(true);
     try {
       const payload = {
-        customer_name: form.customer_name || 'Walk-in',
-        customer_phone: form.customer_phone,
-        customer_email: form.customer_email,
         title: form.title,
-        description: form.description,
-        appointment_type: form.appointment_type,
+        customer_name: form.customer_name,
+        customer_email: form.customer_email,
+        customer_phone: form.customer_phone,
         scheduled_start: form.scheduled_start,
         scheduled_end: form.scheduled_end || new Date(new Date(form.scheduled_start).getTime() + 30 * 60 * 1000).toISOString(),
         location_type: form.location_type,
         location_url: form.location_url,
         location_address: form.location_address,
         notes: form.notes,
-        status: 'scheduled',
+        description: form.description,
+        appointment_type: form.appointment_type,
+        status: editing ? editing.status : 'scheduled',
       };
       if (editing) {
         const { error } = await supabase.from('appointments').update(payload).eq('id', editing.id);
@@ -173,7 +198,7 @@ export default function AppointmentsPage() {
 
   const remove = async (id: string) => {
     if (!confirm('Delete this appointment?')) return;
-    const { error } = await supabase.from('appointments').delete().eq('id', id);
+    const { error } = await supabase.from('appointments').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) toast.error(error.message);
     else {
       toast.success('Deleted');

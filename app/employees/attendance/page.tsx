@@ -98,8 +98,8 @@ export default function AttendancePage() {
     setError(null);
     try {
       const [empRes, attRes] = await Promise.all([
-        supabase.from('employees').select('id, name, role, department, email, status').order('name', { ascending: true }),
-        supabase.from('attendance').select('*').eq('attendance_date', selectedDate),
+        supabase.from('employees').select('id, name, role, department, email, status').is('deleted_at', null).order('name', { ascending: true }),
+        supabase.from('attendance').select('*').is('deleted_at', null).eq('attendance_date', selectedDate),
       ]);
       if (empRes.error) throw empRes.error;
       if (attRes.error) throw attRes.error;
@@ -185,7 +185,7 @@ export default function AttendancePage() {
 
   const clearAttendance = async (a: Attendance) => {
     const emp = employees.find((e) => e.id === a.employee_id);
-    const { error: err } = await supabase.from('attendance').delete().eq('id', a.id);
+    const { error: err } = await supabase.from('attendance').update({ deleted_at: new Date().toISOString() }).eq('id', a.id);
     if (err) toast.error(err.message);
     else { toast.success(`Cleared attendance for ${emp?.name || 'employee'}`); load(); }
   };

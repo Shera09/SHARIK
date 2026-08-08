@@ -207,18 +207,20 @@ export default function AutomationPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    let query = supabase.from('workflows').select('*').order('created_at', { ascending: false });
+    let query = supabase.from('workflows').select('*').is('deleted_at', null).order('created_at', { ascending: false });
     if (statusFilter !== 'all') query = query.eq('status', statusFilter);
     const { data, error } = await query;
     if (!error) setWorkflows((data || []) as Workflow[]);
     setLoading(false);
   }, [statusFilter]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const filtered = workflows.filter((w) => {
     const q = search.toLowerCase();
-    return w.name.toLowerCase().includes(q) || w.tags.some((t) => t.includes(q));
+    return w.name.toLowerCase().includes(q) || (w.description || '').toLowerCase().includes(q);
   });
 
   const saveWorkflow = async () => {
@@ -229,14 +231,14 @@ export default function AutomationPage() {
     setSaving(true);
     try {
       const payload = {
-        name: form.name,
-        description: form.description || '',
+        name: form.name.trim(),
+        description: form.description?.trim() || null,
+        status: form.status || 'draft',
         trigger_type: form.trigger_type || 'manual',
         trigger_config: form.trigger_config || {},
         nodes: form.nodes || [],
         edges: form.edges || [],
         tags: form.tags || [],
-        status: form.status || 'draft',
       };
       if (selectedWorkflow) {
         const { error } = await supabase
@@ -261,7 +263,7 @@ export default function AutomationPage() {
 
   const deleteWorkflow = async (id: string) => {
     if (!confirm('Delete this workflow?')) return;
-    const { error } = await supabase.from('workflows').delete().eq('id', id);
+    const { error } = await supabase.from('workflows').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) toast.error(error.message);
     else {
       toast.success('Deleted');

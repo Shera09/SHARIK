@@ -147,7 +147,7 @@ export default function GoogleReviewsPage() {
     setLoading(true);
     try {
       const [reviewsRes, logsRes, statsRes, settingsRes] = await Promise.all([
-        supabase.from('google_reviews').select('*').order('display_order', { ascending: true }),
+        supabase.from('google_reviews').select('*').is('deleted_at', null).order('display_order', { ascending: true }),
         supabase.from('review_sync_logs').select('*').order('synced_at', { ascending: false }).limit(10),
         supabase.rpc('get_review_stats'),
         supabase.from('review_display_settings').select('*'),
@@ -208,16 +208,34 @@ export default function GoogleReviewsPage() {
       loadData();
     } catch (error) {
       const duration = Date.now() - startTime;
+      console.error('Error syncing reviews:', error);
+      toast.error('Failed to sync reviews from Google');
+
+      // Log the failure
       await supabase.from('review_sync_logs').insert({
         sync_type: 'manual',
-        status: 'failed',
-        error_message: error instanceof Error ? error.message : 'Unknown error',
+        status: 'error',
+        error_message: (error as Error).message,
         sync_duration_ms: duration,
       });
-      toast.error('Failed to sync reviews. Check your Google Business Profile connection.');
     } finally {
       setSyncing(false);
     }
+  };
+
+  const updateReviewStatus = async (id: string, updates: Partial<GoogleReview>) => {
+    const { error } = await supabase
+      .from('google_reviews')
+      .update(updates)
+      .eq('id', id);
+
+    if (error) {
+      toast.error('Failed to update review');
+      return;
+    }
+
+    setReviews(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+    toast.success('Review updated');
   };
 
   const toggleVisibility = async (reviewIds: string[], visible: boolean) => {
@@ -256,6 +274,23 @@ export default function GoogleReviewsPage() {
     toast.success(`${featured ? 'Featured' : 'Unfeatured'} ${reviewIds.length} review(s)`);
   };
 
+  const bulkUpdateStatus = async (updates: Partial<GoogleReview>) => {
+    const ids = Array.from(selectedReviews);
+    const { error } = await supabase
+      .from('google_reviews')
+      .update(updates)
+      .in('id', ids);
+
+    if (error) {
+      toast.error('Failed to update reviews');
+      return;
+    }
+
+    setReviews(prev => prev.map(r => ids.includes(r.id) ? { ...r, ...updates } : r));
+    setSelectedReviews(new Set());
+    toast.success(`Updated ${ids.length} reviews`);
+  };
+
   const updateDisplayOrder = async (reviewId: string, newOrder: number) => {
     await supabase
       .from('google_reviews')
@@ -273,7 +308,7 @@ export default function GoogleReviewsPage() {
   const deleteReviews = async (reviewIds: string[]) => {
     const { error } = await supabase
       .from('google_reviews')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .in('id', reviewIds);
 
     if (error) {

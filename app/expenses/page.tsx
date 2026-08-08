@@ -95,7 +95,7 @@ export default function ExpensesPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    let query = supabase.from('expenses').select('*').order('expense_date', { ascending: false });
+    let query = supabase.from('expenses').select('*').is('deleted_at', null).order('expense_date', { ascending: false });
     if (categoryFilter !== 'all') query = query.eq('category', categoryFilter);
     const { data, error } = await query;
     if (!error) setExpenses(data || []);
@@ -157,7 +157,7 @@ export default function ExpensesPage() {
 
   const remove = async (e: Expense) => {
     if (!confirm('Delete this expense?')) return;
-    const { error } = await supabase.from('expenses').delete().eq('id', e.id);
+    const { error } = await supabase.from('expenses').update({ deleted_at: new Date().toISOString() }).eq('id', e.id);
     if (error) toast.error(error.message);
     else { toast.success('Deleted'); load(); }
   };

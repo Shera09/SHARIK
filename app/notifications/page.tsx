@@ -79,6 +79,7 @@ export default function NotificationsPage() {
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
     if (!error) setNotifications(data || []);
     setLoading(false);
@@ -110,7 +111,7 @@ export default function NotificationsPage() {
   };
 
   const remove = async (id: string) => {
-    const { error } = await supabase.from('notifications').delete().eq('id', id);
+    const { error } = await supabase.from('notifications').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) { toast.error(error.message); return; }
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     toast.success('Notification deleted');
@@ -118,7 +119,7 @@ export default function NotificationsPage() {
 
   const clearAll = async () => {
     if (!confirm('Delete all notifications?')) return;
-    const { error } = await supabase.from('notifications').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    const { error } = await supabase.from('notifications').update({ deleted_at: new Date().toISOString() }).is('deleted_at', null);
     if (error) { toast.error(error.message); return; }
     setNotifications([]);
     toast.success('All notifications cleared');

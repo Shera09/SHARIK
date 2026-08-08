@@ -149,6 +149,7 @@ export default function ProjectsPage() {
     const { data, error: err } = await supabase
       .from('projects')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
     if (err) setError(err.message);
     else setProjects(data || []);
@@ -238,7 +239,10 @@ export default function ProjectsPage() {
 
   const remove = async (p: Project) => {
     if (!confirm(`Delete "${p.name}"? This cannot be undone.`)) return;
-    const { error: err } = await supabase.from('projects').delete().eq('id', p.id);
+    const { error: err } = await supabase
+      .from('projects')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', p.id);
     if (err) toast.error(err.message);
     else {
       toast.success('Project deleted');

@@ -98,6 +98,7 @@ export default function CalendarPage() {
     const { data, error } = await supabase
       .from('calendar_events')
       .select('*')
+      .is('deleted_at', null)
       .order('event_date', { ascending: true });
     if (!error) setEvents(data || []);
     setLoading(false);
@@ -134,14 +135,24 @@ export default function CalendarPage() {
     setDialogOpen(true);
   };
 
+  const openAddForDay = (day: number) => {
+    const dateStr = getDateStr(day);
+    setSelectedDate(dateStr);
+    setForm({ ...emptyForm, event_date: dateStr });
+    setDialogOpen(true);
+  };
+
   const save = async () => {
-    if (!form.title.trim()) { toast.error('Title is required'); return; }
-    if (!form.event_date) { toast.error('Date is required'); return; }
+    if (!form.title.trim()) {
+      toast.error('Title is required');
+      return;
+    }
     setSaving(true);
     try {
       const { error } = await supabase.from('calendar_events').insert({
-        ...form,
-        description: form.description || null,
+        title: form.title.trim(),
+        event_date: form.event_date,
+        event_type: form.event_type,
         start_time: form.start_time || null,
         end_time: form.end_time || null,
         attendees: form.attendees || null,
@@ -159,7 +170,7 @@ export default function CalendarPage() {
 
   const remove = async (id: string) => {
     if (!confirm('Delete this event?')) return;
-    const { error } = await supabase.from('calendar_events').delete().eq('id', id);
+    const { error } = await supabase.from('calendar_events').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) { toast.error(error.message); return; }
     toast.success('Event deleted');
     loadEvents();

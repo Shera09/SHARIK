@@ -44,6 +44,7 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { taskSchema } from '@/lib/validations';
 
 type Task = {
   id: string;
@@ -93,7 +94,11 @@ export default function TasksPage() {
   const loadTasks = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: err } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+    const { data, error: err } = await supabase
+      .from('tasks')
+      .select('*')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
     if (err) setError(err.message);
     else setTasks(data || []);
     setLoading(false);
@@ -115,10 +120,16 @@ export default function TasksPage() {
   };
 
   const save = async () => {
-    if (!form.title.trim()) { toast.error('Title is required'); return; }
+    const payload = { ...form, due_date: form.due_date || null };
+    const validation = taskSchema.safeParse(payload);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0]?.message || 'Invalid task data';
+      toast.error(firstError);
+      return;
+    }
+
     setSaving(true);
     try {
-      const payload = { ...form, due_date: form.due_date || null };
       if (editing) {
         const { error: err } = await supabase.from('tasks').update(payload).eq('id', editing.id);
         if (err) throw err;
@@ -145,7 +156,10 @@ export default function TasksPage() {
 
   const remove = async (t: Task) => {
     if (!confirm(`Delete "${t.title}"?`)) return;
-    const { error: err } = await supabase.from('tasks').delete().eq('id', t.id);
+    const { error: err } = await supabase
+      .from('tasks')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', t.id);
     if (err) toast.error(err.message);
     else { toast.success('Task deleted'); loadTasks(); }
   };

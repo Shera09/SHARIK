@@ -107,7 +107,7 @@ export default function ChartOfAccountsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    let query = supabase.from('accounts').select('*').order('code', { ascending: true });
+    let query = supabase.from('accounts').select('*').is('deleted_at', null).order('code', { ascending: true });
     if (typeFilter !== 'all') query = query.eq('account_type', typeFilter);
     const { data, error } = await query;
     if (error) toast.error(error.message);
@@ -136,7 +136,7 @@ export default function ChartOfAccountsPage() {
 
   const openAdd = () => {
     setEditing(null);
-    setForm({ ...emptyForm, sub_type: subTypeOptions.asset[0] });
+    setForm(emptyForm);
     setDialogOpen(true);
   };
 
@@ -154,8 +154,8 @@ export default function ChartOfAccountsPage() {
   };
 
   const save = async () => {
-    if (!form.code.trim()) { toast.error('Account code is required'); return; }
-    if (!form.name.trim()) { toast.error('Account name is required'); return; }
+    if (!form.code.trim()) { toast.error('Code is required'); return; }
+    if (!form.name.trim()) { toast.error('Name is required'); return; }
     setSaving(true);
     try {
       const payload = {
@@ -165,6 +165,7 @@ export default function ChartOfAccountsPage() {
         sub_type: form.sub_type || null,
         description: form.description || null,
         opening_balance: Number(form.opening_balance) || 0,
+        current_balance: Number(form.opening_balance) || 0,
       };
       if (editing) {
         const { error } = await supabase.from('accounts').update(payload).eq('id', editing.id);
@@ -185,7 +186,7 @@ export default function ChartOfAccountsPage() {
 
   const remove = async (a: Account) => {
     if (!confirm(`Delete account ${a.code} — ${a.name}?`)) return;
-    const { error } = await supabase.from('accounts').delete().eq('id', a.id);
+    const { error } = await supabase.from('accounts').update({ deleted_at: new Date().toISOString() }).eq('id', a.id);
     if (error) toast.error(error.message);
     else { toast.success('Account deleted'); load(); }
   };

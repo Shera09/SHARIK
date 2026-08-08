@@ -46,6 +46,7 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { customerSchema } from '@/lib/validations';
 
 type Customer = {
   id: string;
@@ -98,6 +99,7 @@ export default function CustomersPage() {
     let query = supabase
       .from('customers')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (statusFilter !== 'all') {
@@ -150,10 +152,13 @@ export default function CustomersPage() {
   };
 
   const save = async () => {
-    if (!form.name.trim()) {
-      toast.error('Name is required');
+    const validation = customerSchema.safeParse(form);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0]?.message || 'Invalid customer data';
+      toast.error(firstError);
       return;
     }
+
     setSaving(true);
     try {
       if (editing) {
@@ -178,7 +183,10 @@ export default function CustomersPage() {
 
   const remove = async (c: Customer) => {
     if (!confirm(`Delete ${c.name}? This cannot be undone.`)) return;
-    const { error: err } = await supabase.from('customers').delete().eq('id', c.id);
+    const { error: err } = await supabase
+      .from('customers')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', c.id);
     if (err) {
       toast.error(err.message);
     } else {

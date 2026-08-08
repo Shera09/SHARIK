@@ -114,8 +114,8 @@ export default function TenantsManagementPage() {
     setLoading(true);
 
     const [tenantsRes, plansRes] = await Promise.all([
-      supabase.from('tenants').select('*').order('created_at', { ascending: false }),
-      supabase.from('subscription_plans').select('*').eq('is_active', true).order('sort_order'),
+      supabase.from('tenants').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
+      supabase.from('subscription_plans').select('*').eq('is_active', true).is('deleted_at', null).order('sort_order'),
     ]);
 
     if (tenantsRes.data) setTenants(tenantsRes.data);
@@ -145,51 +145,46 @@ export default function TenantsManagementPage() {
     suspended: tenants.filter(t => t.status === 'suspended').length,
   };
 
-  const save = async () => {
-    if (!form.name.trim()) {
-      toast.error('Name is required');
-      return;
-    }
+  const openAdd = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    setDialogOpen(true);
+  };
 
+  const openEdit = (t: Tenant) => {
+    setEditing(t);
+    setForm({
+      name: t.name,
+      email: t.email || '',
+      phone: t.phone || '',
+      city: t.city || '',
+      country: t.country || 'India',
+      subdomain: t.subdomain || '',
+      current_plan: t.current_plan || 'free',
+    });
+    setDialogOpen(true);
+  };
+
+  const save = async () => {
+    if (!form.name.trim()) { toast.error('Tenant name is required'); return; }
     setSaving(true);
     try {
-      const slug = form.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      const subdomain = form.subdomain || slug;
-
       if (editing) {
-        const { error } = await supabase
-          .from('tenants')
-          .update({
-            name: form.name,
-            email: form.email,
-            phone: form.phone,
-            city: form.city,
-            country: form.country,
-            current_plan: form.current_plan,
-          })
-          .eq('id', editing.id);
+        const { error } = await supabase.from('tenants').update(form).eq('id', editing.id);
         if (error) throw error;
         toast.success('Tenant updated');
       } else {
+        const slug = form.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
         const { error } = await supabase.from('tenants').insert({
-          name: form.name,
+          ...form,
           slug,
-          subdomain,
-          email: form.email,
-          phone: form.phone,
-          city: form.city,
-          country: form.country,
-          current_plan: form.current_plan,
+          subdomain: form.subdomain || slug,
           status: 'trial',
-          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
         });
         if (error) throw error;
         toast.success('Tenant created');
       }
-
       setDialogOpen(false);
-      setForm(emptyForm);
-      setEditing(null);
       loadData();
     } catch (e: any) {
       toast.error(e.message || 'Failed to save');
@@ -214,7 +209,7 @@ export default function TenantsManagementPage() {
   const remove = async (id: string) => {
     if (!confirm('Delete this tenant? This action cannot be undone.')) return;
 
-    const { error } = await supabase.from('tenants').delete().eq('id', id);
+    const { error } = await supabase.from('tenants').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) {
       toast.error(error.message);
     } else {
