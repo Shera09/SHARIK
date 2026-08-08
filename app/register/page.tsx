@@ -199,15 +199,23 @@ export default function RegisterPage() {
             status: 'active',
           });
 
-        // 4. Create user role
-        await supabase
-          .from('user_role_assignments')
-          .insert({
-            user_id: userId,
-            role_id: null, // Will need to handle roles properly
-            tenant_id: orgData.id,
-            is_active: true,
-          });
+        // 4. Assign Admin role to workspace creator
+        const { data: adminRole } = await supabase
+          .from('roles')
+          .select('id')
+          .eq('role_key', 'admin')
+          .single();
+
+        if (adminRole) {
+          await supabase
+            .from('user_role_assignments')
+            .insert({
+              user_id: userId,
+              role_id: adminRole.id,
+              tenant_id: orgData.id,
+              is_active: true,
+            });
+        }
       }
 
       // 5. Redirect to onboarding or dashboard

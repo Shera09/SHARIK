@@ -48,6 +48,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 
 type FormBuilder = {
@@ -92,6 +93,7 @@ const examplePrompts = [
 ];
 
 export default function FormBuilderPage() {
+  const { user, isLoading: authLoading } = useAuth();
   const [forms, setForms] = useState<FormBuilder[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -110,6 +112,12 @@ export default function FormBuilderPage() {
     if (data) setForms(data);
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast.error('Please sign in to manage forms');
+    }
+  }, [authLoading, user]);
 
   useEffect(() => {
     loadData();
@@ -145,6 +153,11 @@ export default function FormBuilderPage() {
     }
     if (fields.length === 0) {
       toast.error('Add at least one field');
+      return;
+    }
+
+    if (!user) {
+      toast.error('Please sign in to create forms');
       return;
     }
 
